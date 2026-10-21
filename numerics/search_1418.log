@@ -1,0 +1,4 @@
+$ python3 search/mom_bb.py 1.418 out_1418.json 1024
+library: 1761 verified polynomials; 100s
+cannot certify box (22, 187218, 39554): bound 1.4178000009483709
+(exit status 1 after about 2 minutes on one core)

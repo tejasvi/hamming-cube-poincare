@@ -1,0 +1,4 @@
+p = 4/5: E xi = 0, E xi^2 = 1
+lambda = (1, 1, 1, 1, -1): E|sum lambda_j xi_j| = 5888/3125 = 1.88416
+|lambda| = (1, 1, 1, 1, 1):  E|sum |lambda_j| xi_j| = 1024/625 = 1.6384
+first > second: True

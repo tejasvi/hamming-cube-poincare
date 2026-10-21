@@ -1,0 +1,8 @@
+sqrt(pi/2) = 1.2533141373
+n =     1: J by quadrature 1.0000000000, by (A4) 1.0000000000, difference 2.2e-16, sqrt(n) (sqrt(pi/2) - J) = 0.253314
+n =     2: J by quadrature 1.0606601718, by (A4) 1.0606601718, difference -2.2e-16, sqrt(n) (sqrt(pi/2) - J) = 0.272454
+n =     3: J by quadrature 1.0905505085, by (A4) 1.0905505085, difference 2.2e-16, sqrt(n) (sqrt(pi/2) - J) = 0.281915
+n =    10: J by quadrature 1.1574618276, by (A4) 1.1574618276, difference -8.9e-16, sqrt(n) (sqrt(pi/2) - J) = 0.303112
+n =   100: J by quadrature 1.2209960630, by (A4) 1.2209960630, difference -2.3e-14, sqrt(n) (sqrt(pi/2) - J) = 0.323181
+n =  1000: J by quadrature 1.2428767221, by (A4) 1.2428767221, difference -4.0e-13, sqrt(n) (sqrt(pi/2) - J) = 0.330060
+3/(2 sqrt 2) = 1.0606601718; 17/(9 sqrt 3) = 1.0905505085

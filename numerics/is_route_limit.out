@@ -1,0 +1,4 @@
+certified lower bound for int_0^(pi/2) R(p(theta)) dtheta: [1.421776356 +/- 2.32e-10] (M = 400000 intervals on [0, pi/2 - 1e-06]; 4.5 s)
+midpoint rule (4000 points) for int f_N(x(theta)) dtheta: 1.4217818
+brute-force max over n <= 240 at 3599 midpoints: largest excess over f_N = 2.65e-14
+pi/2 - (midpoint value) = 0.149015; total time 67.4 s

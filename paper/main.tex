@@ -1,0 +1,863 @@
+\documentclass[11pt]{amsart}
+\pdfsuppressptexinfo=-1
+\usepackage[margin=1.1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,enumitem}
+\usepackage[unicode,hidelinks]{hyperref}
+\hypersetup{pdftitle={The L¹ Poincaré constant of the Hamming cube},
+  pdfauthor={Tejasvi Singh Tomar}}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\numberwithin{equation}{section}
+\setlength{\emergencystretch}{2em}
+\raggedbottom
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\renewcommand{\P}{\mathbb{P}}
+\newcommand{\eps}{\varepsilon}
+% Certified value and certificate data (one place; the text and Table 1 use these macros).
+\newcommand{\CUB}{71/50}
+\newcommand{\CUBdec}{1.42}
+\newcommand{\ISLimitLo}{1.42177}
+\newcommand{\CertSha}{931895626b499b932af4ecf332f5491e06a0ae94e2e031ef6e8ee45496fb0758}
+% Release slots.
+\newcommand{\PAPERDOI}{10.5281/zenodo.23715900}
+\newcommand{\SUPPDOI}{10.5281/zenodo.23715901}
+\newcommand{\REPOURL}{https://github.com/tejasvi/hamming-cube-poincare-v2/tree/v3}
+
+\begin{document}
+
+\title{The $L^1$ Poincar\'e constant of the Hamming cube}
+\author{Tejasvi Singh Tomar}
+\renewcommand{\urladdrname}{{\itshape ORCID}}
+\urladdr{\href{https://orcid.org/0000-0003-4668-3639}{https://orcid.org/0000-0003-4668-3639}}
+\subjclass[2020]{60E15; 06E30, 60E10, 68V20}
+\keywords{Poincar\'e inequality, Hamming cube, Pisier inequality, biased Rademacher sums, characteristic functions, Fej\'er kernel, formal verification}
+
+\begin{abstract}
+Let $C$ be the smallest constant such that $\E|f-\E f|\le C\,\E|\nabla f|$ for every real-valued function $f$ on every Hamming cube $\{-1,1\}^n$, where $|\nabla f|$ is the Euclidean length of $(D_1f,\dots,D_nf)$ and $D_jf(x)=(f(x)-f(x^{(j)}))/2$. Ben Efraim and Lust-Piquard proved $C\le\pi/2$, the Gaussian case gives $C\ge\sqrt{\pi/2}$, and Ivanisvili, Li, van Handel and Volberg asked whether $C=\sqrt{\pi/2}$. We prove that it is, with an explicit constant $c_n<\sqrt{\pi/2}$ in dimension $n$. The proof turns on an integral of first absolute moments of sums of independent biased random signs: we compute it exactly when the coefficients are nonnegative, and show, with a sampled Fej\'er kernel, that it can only grow when the coefficients are replaced by their absolute values. The equality $C=\sqrt{\pi/2}$ is also proved in Lean~4 with Mathlib.
+\end{abstract}
+
+\maketitle
+
+\section{Introduction}\label{sec:intro}
+
+Let $x$ be uniformly distributed on the Hamming cube $\{-1,1\}^n$. For $f\colon\{-1,1\}^n\to\R$ and $1\le j\le n$ put
+\[
+D_jf(x)=\frac{f(x)-f(x^{(j)})}{2},\qquad |\nabla f|(x)=\Bigl(\sum_{j=1}^nD_jf(x)^2\Bigr)^{1/2},
+\]
+where $x^{(j)}$ is obtained from $x$ by changing the sign of the $j$th coordinate. Let $C$ be the smallest constant such that
+\begin{equation}\label{eq:poincare}
+\E\bigl|f(x)-\E f(x)\bigr|\le C\,\E|\nabla f|(x)
+\end{equation}
+for all $n\ge1$ and all $f$. This is the $L^1$ Poincar\'e constant of the Hamming cube.
+
+Ben Efraim and Lust-Piquard~\cite{BEL08} proved $C\le\pi/2$ by a non-commutative argument (their gradient omits the factor $1/2$, and the bound appears there as $\pi/4$), and several other proofs give the same constant~\cite{ILvHV}. Ivanisvili, Li, van Handel and Volberg~\cite{ILvHV} showed that $C<\pi/2$, with a gap that was not made explicit. R.~van Handel obtained an explicit gap of about $6\cdot10^{-6}$ (see~\cite[Section~1.3]{IS24}), and Ivanisvili and Stone~\cite[Corollary~3]{IS24} proved $C\le\pi/2-1.3\cdot10^{-4}$. In the other direction, the central limit theorem carries~\eqref{eq:poincare} over to Gauss space, where the sharp constant is $\sqrt{\pi/2}$~\cite{Pis86}, so that $C\ge\sqrt{\pi/2}\approx1.2533$~\cite{ILvHV}. Ivanisvili, Li, van Handel and Volberg~\cite{ILvHV} asked whether $C=\sqrt{\pi/2}$, and Ivanisvili and Stone~\cite[Remark~1.3]{IS24} suggest that it is. A positive answer means that, for this inequality, the cube is in no dimension worse than Gauss space. For functions with values in $\{0,1\}$, Durcik, Ivanisvili, Roos and Xie~\cite[Theorem~1.3]{DIRX26} proved that $\E|f-\E f|\le\E|\nabla f|$, with equality for indicators of half-cubes, and they state that the sharp constant for real-valued $f$ is still open~\cite{DIRX26}. Han and Li~\cite{HL26} prove higher-order inequalities of Poincar\'e type on the cube with explicit constants, and Ivanisvili, Xie and Zhang~\cite[Section~6]{IXZ26} bound fractional spectral moments of bounded functions with integrals of absolute moments of sums of biased random signs like the integral $J$ below (Remark~\ref{rem:dual}(iii)). We prove that $C=\sqrt{\pi/2}$.
+
+\begin{theorem}\label{thm:main}
+$C=\sqrt{\pi/2}$. More precisely, for every $n\ge1$ and every $f\colon\{-1,1\}^n\to\R$,
+\[
+\E|f-\E f|\le c_n\,\E|\nabla f|,\qquad c_n=\sqrt n\,\Bigl(1-\sum_{k=2}^n(k-2)!\binom nk n^{-k}\Bigr),
+\]
+where $c_n<\sqrt{\pi/2}$ for every $n$, the sequence $(c_n)$ is nondecreasing, and $c_n\to\sqrt{\pi/2}$. For instance $c_1=1$, $c_2=3/(2\sqrt2)$ and $c_3=17/(9\sqrt3)$.
+\end{theorem}
+
+For $n=1$ the constant $c_1=1$ is attained by $f(x)=x_1$. For larger $n$ the constant $c_n$ is not always the best one: in dimension $2$ the best constant is $1$ (Remark~\ref{con:rem:dim2}). Theorem~\ref{thm:main} concerns real-valued functions. For complex-valued functions the best constant is not known, and Remark~\ref{con:rem:complex} proves the upper bound $\pi^{3/2}/4$.
+
+The proof has three parts. The first reduces the problem to sums of independent random variables. For $p\in(0,1)$ let $\xi^{(p)}$ be the random variable with
+\begin{equation}\label{eq:xi}
+\P\Bigl(\xi^{(p)}=\sqrt{\tfrac{1-p}{p}}\Bigr)=p,\qquad \P\Bigl(\xi^{(p)}=-\sqrt{\tfrac{p}{1-p}}\Bigr)=1-p,
+\end{equation}
+so that $\E\xi^{(p)}=0$ and $\E(\xi^{(p)})^2=1$. For $\lambda\in\R^n$ put
+\begin{equation}\label{eq:J}
+J(\lambda)=\int_0^{\pi/2}\E\Bigl|\sum_{j=1}^n\lambda_j\xi_j^{(p(\theta))}\Bigr|\,d\theta,\qquad p(\theta)=\frac{1+\sin\theta}{2},
+\end{equation}
+where $\xi_1^{(p)},\dots,\xi_n^{(p)}$ are independent copies of $\xi^{(p)}$ (the integrand is defined for $\theta<\pi/2$), and let $K$ be the supremum of $J(\lambda)$ over all $n$ and all unit vectors $\lambda\in\R^n$. Ivanisvili, van Handel and Volberg~\cite[Theorem~1.2]{IvHV} proved a Pisier-type inequality on the cube. For real functions and the convex function $|\cdot|$ it states, after a change of variables, that
+\begin{equation}\label{eq:ivhv}
+\E|f-\E f|\le\E_y\,J\bigl(\nabla f(y)\bigr),
+\end{equation}
+where $y$ is uniform on the cube and $\nabla f(y)=(D_1f(y),\dots,D_nf(y))$. Since $J(a)\le K|a|$, it follows from~\eqref{eq:ivhv} that $C\le K$ (Theorem~\ref{thm:reduction}). Earlier arguments bound the inner expectation, for each value of $p$ separately, by $\E|\nabla f|$ times $R(p)$, the supremum of $\E|\sum_j\lambda_j\xi_j^{(p)}|$ over unit vectors~$\lambda$. This leads to $C\le\int_0^{\pi/2}R(p(\theta))\,d\theta$. The route goes back to~\cite[Sections~2--5]{ILvHV}, where it is used in a dual form to prove $C<\pi/2$. Ivanisvili and Stone~\cite[Section~2.4]{IS24} made it explicit with an upper bound for $R(p)$. We take the supremum over directions only after the integration over $p$. The order matters, because a certified computation shows that the integral of $R(p(\theta))$ is at least $\ISLimitLo$ (Remark~\ref{rem:islimit}).
+
+Two new ingredients then give $K=\sqrt{\pi/2}$. The first is an exact formula for $J$ on vectors with nonnegative coordinates (Theorem~\ref{A:thm:A}): for such $\lambda$, $J(\lambda)=\frac\pi2\E|\sum_j\lambda_jZ_j|$, where $Z_1,Z_2,\dots$ are independent with density $\frac2\pi(1+x^2)^{-2}$. It rests on a mean-value identity for a holomorphic function on the unit disk, and it shows that $J(\lambda)<\sqrt{\pi/2}\,|\lambda|$ for nonzero such $\lambda$; among the unit vectors of $\R^n$ with nonnegative coordinates, $J$ is largest at $(1,\dots,1)/\sqrt n$, where it equals $c_n$. The second is the inequality $J(\lambda)\le J(|\lambda_1|,\dots,|\lambda_n|)$ for every $\lambda$ (Theorem~\ref{B:thm:B}), whose analogue for a single value of $\theta$ can fail (Remark~\ref{B:rem:fixedtheta}). Its proof expands the characteristic function of a centred Bernoulli variable, as a function of the success probability, in a Fourier series; the coefficients form a sampled Fej\'er kernel, and for nonnegative frequencies these distributions and all their convolutions put at least as much mass at $k$ as at $-k$ for every $k\ge0$ (Lemmas~\ref{B:lem:fejer} and~\ref{B:lem:skew}). Together the two ingredients give $J(a)\le J(|a_1|,\dots,|a_n|)\le c_n|a|$ for $a\in\R^n$, and~\eqref{eq:ivhv} then gives Theorem~\ref{thm:main}.
+
+Section~\ref{sec:reduction} proves the reduction, Sections~\ref{sec:sharp} and~\ref{sec:thmB} the two ingredients, and Section~\ref{sec:constant} the theorem. Section~\ref{sec:elem} gives a second proof of $C\le\sqrt{\pi/2}$ that avoids complex analysis, and Section~\ref{sec:lean} describes the formal proof of $C=\sqrt{\pi/2}$ in Lean~4 with Mathlib, which has no hypotheses. Appendix~\ref{app:dual} treats the dual approach of~\cite{ILvHV}. An earlier computer-assisted proof of the weaker bound $C\le K\le\CUB$, with a certificate checked by two programs and in Lean, is in~\cite{Tom26}.
+
+\section{The reduction}\label{sec:reduction}
+
+We keep the notation of the introduction. The function $J$ is defined by~\eqref{eq:J} on all of $\R^n$. It satisfies $J(c\lambda)=|c|J(\lambda)$, and it does not change if zero coordinates are appended to~$\lambda$. Put
+\[
+K_n=\sup\{J(\lambda):\lambda\in\R^n,\ |\lambda|=1\},\qquad K=\sup_{n\ge1}K_n,
+\]
+where $|\cdot|$ is the Euclidean norm. Since $J(\lambda)\le\pi/2$ for unit vectors (Remark~\ref{rem:basic}), $K\le\pi/2$.
+
+For $t>0$ let $\rho=e^{-t}$, and let $\zeta=\zeta(t)=(\zeta_1,\dots,\zeta_n)$ be independent of $x$, with independent coordinates and $\P(\zeta_j=\pm1)=(1\pm\rho)/2$. Write $x\zeta=(x_1\zeta_1,\dots,x_n\zeta_n)$, $T_tf(x)=\E_\zeta f(x\zeta)$ and
+\[
+\delta_j=\delta_j(t)=\frac{\zeta_j-\rho}{\sqrt{1-\rho^2}}.
+\]
+In~\cite{IvHV} the vector $\zeta(t)$ is denoted $\xi(t)$, and $\delta_j(t)$ has the same name. The following identity is due to Ivanisvili, van Handel and Volberg~\cite[Lemma~2.1 and Remark~2.2]{IvHV}, who credit the direct derivation through the derivative of $T_tf$ to J.~Liu. Ivanisvili and Stone used it in~\cite[(2.5)]{IS24}. We include the short proof.
+
+\begin{lemma}\label{lem:ivhv}
+For every $f\colon\{-1,1\}^n\to\R$ and every $x\in\{-1,1\}^n$,
+\[
+f(x)-\E f=\int_0^\infty\frac{1}{\sqrt{e^{2t}-1}}\,\E_\zeta\Bigl[\sum_{j=1}^n\delta_j(t)\,D_jf\bigl(x\zeta(t)\bigr)\Bigr]\,dt,
+\]
+and the integral converges absolutely.
+\end{lemma}
+
+\begin{proof}
+Let $\pi_t(\pm1)=(1\pm e^{-t})/2$. Then $T_tf(x)=\sum_{z\in\{-1,1\}^n}\prod_j\pi_t(z_j)\,f(xz)$ is a polynomial in $e^{-t}$, with $T_0f=f$ and $T_tf(x)\to\E f$ as $t\to\infty$. Since $\frac{d}{dt}\pi_t(\pm1)=\mp e^{-t}/2$,
+\[
+\frac{d}{dt}T_tf(x)=-\frac{e^{-t}}{2}\sum_{j=1}^n\E\bigl[f(x\zeta^{j,+})-f(x\zeta^{j,-})\bigr],
+\]
+where $\zeta^{j,\pm}$ is $\zeta$ with $\zeta_j$ replaced by $\pm1$. Checking the two values of $\zeta_j$ separately gives $f(x\zeta^{j,+})-f(x\zeta^{j,-})=2\zeta_jD_jf(x\zeta)$. The left side does not depend on $\zeta_j$. Since $\zeta_j^2=1$ and $\zeta_j$ is independent of the other coordinates,
+\[
+\E\bigl[\delta_jD_jf(x\zeta)\bigr]=\E\bigl[\zeta_j\delta_j\cdot\zeta_jD_jf(x\zeta)\bigr]=\E[\zeta_j\delta_j]\cdot\tfrac12\,\E\bigl[f(x\zeta^{j,+})-f(x\zeta^{j,-})\bigr],
+\]
+and $\E[\zeta_j\delta_j]=(1-\rho^2)/\sqrt{1-\rho^2}=\sqrt{1-\rho^2}$. Hence
+\[
+\frac{d}{dt}T_tf(x)=-\frac{e^{-t}}{\sqrt{1-e^{-2t}}}\sum_{j=1}^n\E\bigl[\delta_jD_jf(x\zeta)\bigr]=-\frac{1}{\sqrt{e^{2t}-1}}\sum_{j=1}^n\E\bigl[\delta_jD_jf(x\zeta)\bigr].
+\]
+Integrating from $0$ to $\tau$ and letting $\tau\to\infty$, we obtain the identity. For the absolute convergence, $\E|\delta_j|=\bigl(\tfrac{1+\rho}2(1-\rho)+\tfrac{1-\rho}2(1+\rho)\bigr)/\sqrt{1-\rho^2}=\sqrt{1-\rho^2}$, so the integrand is at most $e^{-t}\sum_j\max|D_jf|$ in absolute value.
+\end{proof}
+
+\begin{theorem}\label{thm:reduction}
+For every $n$ and every $f\colon\{-1,1\}^n\to\R$,
+\[
+\E|f-\E f|\le\E_y\,J\bigl(\nabla f(y)\bigr)\le K_n\,\E|\nabla f|,
+\]
+where $y$ is uniform on $\{-1,1\}^n$. Consequently $C\le K$.
+\end{theorem}
+
+The first inequality is the case $X=\R$, $\Phi=|\cdot|$ of the Pisier-type inequality~\cite[Theorem~1.2]{IvHV}, after the substitution $e^{-t}=\sin\theta$. In the variable $p$ it is the first step of~\cite[Section~2.4]{IS24}. For completeness we write out the argument. The second inequality holds because $J(a)=|a|\,J(a/|a|)\le K_n|a|$ for $a\ne0$.
+
+\begin{proof}
+By Lemma~\ref{lem:ivhv}, the triangle inequality and Tonelli's theorem,
+\[
+\E|f-\E f|\le\int_0^\infty\frac{1}{\sqrt{e^{2t}-1}}\,\E_{x,\zeta}\Bigl|\sum_{j=1}^n\delta_j(t)\,D_jf\bigl(x\zeta(t)\bigr)\Bigr|\,dt.
+\]
+Fix $t$. For each value of $\zeta$ the map $x\mapsto x\zeta$ preserves the uniform measure, so the pair $(x\zeta,\zeta)$ has the law of $(y,\zeta)$ with $y$ uniform and independent of~$\zeta$. Since $\delta_j$ is a function of $\zeta_j$,
+\[
+\E_{x,\zeta}\Bigl|\sum_j\delta_j\,D_jf(x\zeta)\Bigr|=\E_y\E_\zeta\Bigl|\sum_j\delta_j\,a_j(y)\Bigr|,\qquad a(y)=\nabla f(y).
+\]
+Put $p=(1+\rho)/2$. Then $1-\rho=2(1-p)$, $1+\rho=2p$ and $1-\rho^2=4p(1-p)$, so $\delta_j=\sqrt{(1-p)/p}$ with probability $p$ and $\delta_j=-\sqrt{p/(1-p)}$ with probability $1-p$. Thus $\delta_1,\dots,\delta_n$ are independent copies of $\xi^{(p)}$. By Tonelli's theorem again, now exchanging $\E_y$ with the integral over $t$,
+\[
+\E|f-\E f|\le\E_y\int_0^\infty\frac{1}{\sqrt{e^{2t}-1}}\,\E\Bigl|\sum_ja_j(y)\,\xi_j^{((1+e^{-t})/2)}\Bigr|\,dt.
+\]
+Substitute $e^{-t}=\sin\theta$ with $\theta\in(0,\pi/2)$. Then $dt=-(\cos\theta/\sin\theta)\,d\theta$ and $(e^{2t}-1)^{-1/2}=\sin\theta/\cos\theta$, so $(e^{2t}-1)^{-1/2}\,dt=-d\theta$. Also $(1+e^{-t})/2=p(\theta)$, and $t\in(0,\infty)$ corresponds to $\theta\in(0,\pi/2)$. Hence the integral over $t$ equals $J(a(y))$. This is the first inequality, and the second was explained above. Finally $C=\sup_n\sup_f\E|f-\E f|/\E|\nabla f|\le\sup_nK_n=K$.
+\end{proof}
+
+\begin{remark}\label{rem:basic}
+(i) $\E|\xi^{(p)}|=2\sqrt{p(1-p)}=\cos\theta$ for $p=p(\theta)$, so $J(e_1)=\int_0^{\pi/2}\cos\theta\,d\theta=1$. For a unit vector $\lambda$ and $S=\sum_j\lambda_j\xi_j^{(p(\theta))}$ we have $\E|S|\le(\E S^2)^{1/2}=1$, so $J(\lambda)\le\pi/2$. This recovers $C\le\pi/2$.
+
+(ii) $K_n\le K_{n+1}$, and $K_n$ is attained, since $J$ is continuous on the unit sphere by dominated convergence.
+
+(iii) $K\ge\sqrt{\pi/2}$. Let $\lambda=(1,\dots,1)/\sqrt n$, fix $\theta\in[0,\pi/2)$, and let $S$ be as in (i). By the central limit theorem, $S$ converges in law to a standard Gaussian $g$ as $n\to\infty$. Since $\E S^2=1$, the family $\{S\}$ is uniformly integrable, and $\E|S|\to\E|g|=\sqrt{2/\pi}$. By dominated convergence (with the bound $\E|S|\le1$), $J(\lambda)\to(\pi/2)\sqrt{2/\pi}=\sqrt{\pi/2}$. Theorem~\ref{thm:reduction} therefore cannot give a bound below $\sqrt{\pi/2}$. We show in Section~\ref{sec:constant} that $K=\sqrt{\pi/2}$.
+\end{remark}
+
+\begin{remark}\label{rem:dual}
+We compare Theorem~\ref{thm:reduction} with earlier arguments.
+
+(i) With $R(p)=\sup_n\sup_{|\lambda|=1}\E|\sum_j\lambda_j\xi_j^{(p)}|$, the bound $C\le\int_0^{\pi/2}R(p(\theta))\,d\theta$ of the introduction comes from bounding $\E_{x,\zeta}|\sum_j\delta_jD_jf(x\zeta)|$ by $R((1+e^{-t})/2)\,\E|\nabla f|$ for each $t$. Ivanisvili and Stone~\cite[Section~2.4]{IS24} use their explicit upper bound~\cite[(1.8)]{IS24} for $R(p)$. In the dual form of (ii) below, Ivanisvili, Li, van Handel and Volberg show that $R(p)<1$ for $p$ near $3/4$~\cite[Theorem~3.1]{ILvHV}.
+
+(ii) The inequality $\E|f-\E f|\le K_n\E|\nabla f|$ also follows from the duality argument of~\cite[Section~2]{ILvHV}, and the dual constant $C_{\mathrm{dual},n}$ of~\cite[(12.1)]{ILvHV} satisfies $C_{\mathrm{dual},n}\le K_n=c_n<\sqrt{\pi/2}$, with equality $C_{\mathrm{dual},2}=c_2$ for $n=2$ (Appendix~\ref{app:dual}). So the values of $C_{\mathrm{dual},n}$ computed numerically in~\cite[Section~12]{ILvHV} stay below $\sqrt{\pi/2}$, although, as remarked there, a linear extrapolation of them would reach $\pi/2$ near $n=60$.
+
+(iii) Ivanisvili, Xie and Zhang~\cite[Section~6]{IXZ26} use the function $\Psi_s(a)=(e^{2s}-1)^{-1/2}\E|\sum_ia_i\delta_i(s)|$ and the integrals $\Gamma_\alpha(a)=\int_0^\infty s^{-\alpha}\Psi_s(a)\,ds$ with the vector $a$ held fixed, $0<\alpha<1$, to bound fractional spectral moments $\sum_A|A|^\alpha\hat f(A)^2$ of functions with values in $[-1,1]$. In this notation $J(a)=\int_0^\infty\Psi_s(a)\,ds$ corresponds to $\alpha=0$.
+\end{remark}
+
+\begin{remark}\label{rem:islimit}
+The bound $\int_0^{\pi/2}R(p(\theta))\,d\theta$ of Remark~\ref{rem:dual}(i) cannot reach $\CUBdec$. Indeed, $R(p)\ge\E|n^{-1/2}\sum_{j\le n}\xi_j^{(p)}|$ for every $n$. With $w=1-p$, the sum $\sum_{j\le n}\xi_j^{(p)}$ equals $(nw-Y)/\sqrt{w(1-w)}$, where $Y$ is binomial with parameters $n$ and $w$. If $nw\le1$, the only value of $Y$ below its mean is $0$, so
+\[
+\E\Bigl|n^{-1/2}\sum_{j\le n}\xi_j^{(p)}\Bigr|=\frac{2nw(1-w)^n}{\sqrt{nw(1-w)}}=2\sqrt{nw}\,(1-w)^{n-1/2}.
+\]
+By a theorem of Stone~\cite[Theorem~4.3.1]{Sto25}, $n=\lfloor1/(2w-w^2)\rfloor$ maximizes the left side over $n$. Evaluating this equal-weight bound in ball arithmetic on a fine partition of $[0,\pi/2)$, with $nw\le1$ on each interval, gives the certified bound $\int_0^{\pi/2}R(p(\theta))\,d\theta\ge\ISLimitLo$, in agreement with~\cite[Remark~1.3]{IS24}; the archive contains the program.
+
+The same limit applies to any bound $\E_{x,\zeta}|\sum_j\delta_j(t)D_jf(x\zeta)|\le c(t)\,\E|\nabla f|$ that holds for all $n$ and all $f$, whether or not it is obtained through $R$. Let $n=2m-1$ and let $f$ be the indicator of $\{x_1+\dots+x_n\ge1\}$. At a point $y$ with $y_1+\dots+y_n=\pm1$, the gradient $\nabla f(y)$ equals $\pm\frac12$ times the indicator vector of the $m$ coordinates of $y$ equal to $\pm1$, and at all other points it vanishes. As in the proof of Theorem~\ref{thm:reduction}, the left side then equals $\E|\nabla f|\cdot\E|m^{-1/2}\sum_{j\le m}\xi_j^{(p)}|$ with $p=(1+e^{-t})/2$. Hence $c(t)$ is at least the equal-weight value for every $m$, and the integral of $c(t)(e^{2t}-1)^{-1/2}$ has the same lower bound.
+\end{remark}
+
+\section{Vectors with coordinates of one sign}\label{sec:sharp}
+
+In this section we give exact formulas for $J(\lambda)$ when all coordinates of $\lambda$ are nonnegative (Theorem~\ref{A:thm:A}). We deduce that $J(\lambda)<\sqrt{\pi/2}\,|\lambda|$ for every nonzero $\lambda$ whose coordinates are all nonnegative or all nonpositive, and that the constant $\sqrt{\pi/2}$ cannot be lowered (Corollary~\ref{A:cor:bound}). Among unit vectors in $[0,\infty)^n$, the maximum of $J$ is attained at equal weights (Corollary~\ref{A:cor:schur}).
+
+Throughout this section, $\varphi_X(t)=\E e^{itX}$ is the characteristic function of a real random variable $X$, and $\mathbf 1_n=(1,\dots,1)\in\R^n$. For $\alpha\in(0,\pi/2)$ let $\xi^\alpha$ be the variable $\xi^{(p)}$ of~\eqref{eq:xi} with $p=\cos^2\alpha$. The superscript $\alpha$ is a label, not an exponent. For this $p$ we have $\sqrt{(1-p)/p}=\tan\alpha$ and $\sqrt{p/(1-p)}=\cot\alpha$, so
+\begin{equation}\label{A:eq:xialpha}
+\P(\xi^\alpha=\tan\alpha)=\cos^2\alpha,\qquad \P(\xi^\alpha=-\cot\alpha)=\sin^2\alpha.
+\end{equation}
+As $\alpha$ runs over $(0,\pi/2)$, the parameter $p=\cos^2\alpha$ runs over $(0,1)$. For $\lambda\in\R^n$ let $\xi_1^\alpha,\dots,\xi_n^\alpha$ be independent copies of $\xi^\alpha$, and put $S_\alpha=\sum_{j=1}^n\lambda_j\xi_j^\alpha$.
+
+\begin{lemma}\label{A:lem:angle}
+Let $\lambda\in\R^n$.
+\begin{enumerate}[label=(\roman*)]
+\item For $\alpha\in(0,\pi/2)$, $S_{\pi/2-\alpha}$ has the law of $-S_\alpha$.
+\item $J(\lambda)=\int_0^{\pi/2}\E|S_\alpha|\,d\alpha$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+(i) By~\eqref{A:eq:xialpha}, $\xi^{\pi/2-\alpha}$ takes the value $\tan(\pi/2-\alpha)=\cot\alpha$ with probability $\cos^2(\pi/2-\alpha)=\sin^2\alpha$, and the value $-\cot(\pi/2-\alpha)=-\tan\alpha$ with probability $\sin^2(\pi/2-\alpha)=\cos^2\alpha$, so $\xi^{\pi/2-\alpha}$ has the law of $-\xi^\alpha$. By independence, the vector $(\xi_1^{\pi/2-\alpha},\dots,\xi_n^{\pi/2-\alpha})$ has the law of $(-\xi_1^\alpha,\dots,-\xi_n^\alpha)$, and (i) follows.
+
+(ii) We substitute $\theta=\pi/2-2\alpha$ in~\eqref{eq:J}, with $\alpha\in(0,\pi/4)$. Then $p(\theta)=(1+\cos2\alpha)/2=\cos^2\alpha$, so $\xi^{(p(\theta))}$ is $\xi^\alpha$, and $d\theta=-2\,d\alpha$. Hence
+\[
+J(\lambda)=2\int_0^{\pi/4}\E|S_\alpha|\,d\alpha.
+\]
+By (i), $\E|S_\alpha|=\E|S_{\pi/2-\alpha}|$. Therefore $\int_0^{\pi/4}\E|S_\alpha|\,d\alpha=\int_{\pi/4}^{\pi/2}\E|S_\alpha|\,d\alpha$, and (ii) follows.
+\end{proof}
+
+\begin{lemma}\label{A:lem:fourier}
+For every real random variable $X$,
+\[
+\E|X|=\frac2\pi\int_0^\infty\bigl(1-\operatorname{Re}\varphi_X(t)\bigr)\,\frac{dt}{t^2},
+\]
+where both sides may be $+\infty$.
+\end{lemma}
+
+\begin{proof}
+We first show that $c_0=\int_0^\infty(1-\cos s)\,s^{-2}\,ds$ equals $\pi/2$. For $0<\eps<b$, integration by parts gives
+\[
+\int_\eps^b\frac{1-\cos s}{s^2}\,ds=\Bigl[-\frac{1-\cos s}{s}\Bigr]_\eps^b+\int_\eps^b\frac{\sin s}{s}\,ds.
+\]
+As $\eps\to0$ and $b\to\infty$, the boundary terms tend to $0$ and the last integral tends to the Dirichlet integral $\pi/2$. The integrand on the left is nonnegative, so $c_0=\pi/2$ by monotone convergence. For real $x\ne0$ the substitution $s=t|x|$ shows that $\int_0^\infty(1-\cos tx)\,t^{-2}\,dt=c_0|x|$. Hence
+\[
+|x|=\frac2\pi\int_0^\infty(1-\cos tx)\,\frac{dt}{t^2}
+\]
+for every real $x$, including $x=0$. We apply this with $x=X$ and take expectations. Since the function $(t,x)\mapsto(1-\cos tx)\,t^{-2}$ is nonnegative and continuous on $(0,\infty)\times\R$, Tonelli's theorem allows us to exchange $\E$ and the integral. Finally, $\E\cos tX=\operatorname{Re}\varphi_X(t)$.
+\end{proof}
+
+\begin{lemma}\label{A:lem:qform}
+For $\lambda\in\R^n$,
+\[
+J(\lambda)=\frac12\int_0^1\E\Bigl|\sum_{j=1}^n\lambda_j(\eta_j-q)\Bigr|\,\frac{dq}{q(1-q)},
+\]
+where, for each $q$, the variables $\eta_1,\dots,\eta_n$ are independent with $\P(\eta_j=1)=q=1-\P(\eta_j=0)$.
+\end{lemma}
+
+\begin{proof}
+Let $q=\sin^2\alpha$ with $\alpha\in(0,\pi/2)$. If $\eta$ is a Bernoulli variable with parameter $q$, then $(q-\eta)/\sqrt{q(1-q)}$ takes the value $\sqrt{q/(1-q)}=\tan\alpha$ with probability $1-q=\cos^2\alpha$ and the value $-\sqrt{(1-q)/q}=-\cot\alpha$ with probability $q=\sin^2\alpha$, so it has the law of $\xi^\alpha$. Hence $\E|S_\alpha|=\E|\sum_j\lambda_j(\eta_j-q)|/\sqrt{q(1-q)}$. Since $dq=2\sin\alpha\cos\alpha\,d\alpha=2\sqrt{q(1-q)}\,d\alpha$, the formula follows from Lemma~\ref{A:lem:angle}(ii).
+\end{proof}
+
+Let $\mathbb D=\{z\in\mathbb C:|z|<1\}$, and let $\overline{\mathbb D}$ be its closure.
+
+\begin{lemma}\label{A:lem:Phi}
+Fix $u\ge0$. For $z\in\overline{\mathbb D}\setminus\{-1,0,1\}$ put
+\[
+\Phi_u(z)=\frac1{4z}\Bigl[(1+z)^2\exp\Bigl(-u\,\frac{1-z}{1+z}\Bigr)-(1-z)^2\exp\Bigl(-u\,\frac{1+z}{1-z}\Bigr)\Bigr],
+\]
+and put $\Phi_u(0)=(1+u)e^{-u}$. Then the following hold.
+\begin{enumerate}[label=(\alph*)]
+\item $\Phi_u$ is holomorphic in $\mathbb D$.
+\item $|\Phi_u(z)|\le4$ for $z\in\mathbb D$.
+\item $\Phi_u$ is continuous on $\overline{\mathbb D}\setminus\{-1,1\}$.
+\item For $\alpha\in(0,\pi/2)$, $\Phi_u(e^{2i\alpha})=\E e^{iu\xi^\alpha}$, and $\Phi_u(e^{-2i\alpha})$ is the complex conjugate of $\Phi_u(e^{2i\alpha})$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+Put $w_1(z)=(1-z)/(1+z)$ and $w_2(z)=(1+z)/(1-z)$. The function $w_1$ is holomorphic on $\mathbb C\setminus\{-1\}$, and $w_2$ is holomorphic on $\mathbb C\setminus\{1\}$. Since $(1-z)(1+\bar z)=1-|z|^2+(\bar z-z)$ and $\bar z-z$ is purely imaginary,
+\[
+\operatorname{Re}w_1(z)=\frac{1-|z|^2}{|1+z|^2}\ge0\qquad(z\in\overline{\mathbb D},\ z\ne-1).
+\]
+In the same way, $\operatorname{Re}w_2(z)=(1-|z|^2)/|1-z|^2\ge0$ for $z\in\overline{\mathbb D}$, $z\ne1$. Hence the functions $g_k=\exp(-uw_k)$, $k=1,2$, satisfy $|g_k|\le1$ at every point of $\overline{\mathbb D}$ where they are defined.
+
+(a) The numerator $\nu(z)=(1+z)^2g_1(z)-(1-z)^2g_2(z)$ is holomorphic in $\mathbb D$, and $\nu(0)=e^{-u}-e^{-u}=0$, so $\nu(z)/(4z)$ has a removable singularity at $0$, with value $\nu'(0)/4$. From $w_1'(0)=-2$ and $w_2'(0)=2$ we get $g_1'(0)=2ue^{-u}$ and $g_2'(0)=-2ue^{-u}$. Therefore
+\[
+\nu'(0)=\bigl(2e^{-u}+g_1'(0)\bigr)-\bigl(-2e^{-u}+g_2'(0)\bigr)=4(1+u)e^{-u},
+\]
+and the extension takes the value $\Phi_u(0)$ at $0$.
+
+(b) For $1/2\le|z|<1$ we have $|\Phi_u(z)|\le(|1+z|^2+|1-z|^2)/(4|z|)\le(4+4)/2=4$. By the maximum principle the same bound holds for $|z|\le1/2$.
+
+(c) The defining formula is continuous on $\overline{\mathbb D}\setminus\{-1,0,1\}$. At $0$, continuity follows from (a).
+
+(d) Let $z=e^{i\psi}$ with $0<|\psi|<\pi$. Then $1+z=2\cos(\psi/2)\,e^{i\psi/2}$ and $1-z=-2i\sin(\psi/2)\,e^{i\psi/2}$. Hence
+\[
+\frac{(1+z)^2}{4z}=\cos^2\frac\psi2,\qquad \frac{(1-z)^2}{4z}=-\sin^2\frac\psi2,\qquad w_1(z)=-i\tan\frac\psi2,\qquad w_2(z)=i\cot\frac\psi2,
+\]
+and so
+\[
+\Phi_u(e^{i\psi})=\cos^2\frac\psi2\;e^{iu\tan(\psi/2)}+\sin^2\frac\psi2\;e^{-iu\cot(\psi/2)}.
+\]
+For $\psi=2\alpha$ with $\alpha\in(0,\pi/2)$, this is $\E e^{iu\xi^\alpha}$ by~\eqref{A:eq:xialpha}. Replacing $\psi$ by $-\psi$ conjugates each term, because $\cos^2$ and $\sin^2$ are even and $\tan$ and $\cot$ are odd.
+\end{proof}
+
+\begin{lemma}\label{A:lem:mv}
+For $u_1,\dots,u_n\ge0$,
+\[
+\frac2\pi\int_0^{\pi/2}\operatorname{Re}\prod_{j=1}^n\E e^{iu_j\xi^\alpha}\,d\alpha=\prod_{j=1}^n(1+u_j)e^{-u_j}.
+\]
+\end{lemma}
+
+\begin{proof}
+Let $F=\prod_{j=1}^n\Phi_{u_j}$. By Lemma~\ref{A:lem:Phi}, $F$ is holomorphic in $\mathbb D$, $|F|\le4^n$ in $\mathbb D$, and $F$ is continuous on $\overline{\mathbb D}\setminus\{-1,1\}$. Moreover $F(0)=\prod_j(1+u_j)e^{-u_j}$, $F(e^{2i\alpha})=\prod_j\E e^{iu_j\xi^\alpha}$ for $\alpha\in(0,\pi/2)$, and $F(e^{-i\psi})=\overline{F(e^{i\psi})}$ for $\psi\in(0,\pi)$. For $0<r<1$ the mean-value property of holomorphic functions gives
+\[
+F(0)=\frac1{2\pi}\int_{-\pi}^{\pi}F(re^{i\psi})\,d\psi.
+\]
+As $r\to1$, $F(re^{i\psi})\to F(e^{i\psi})$ for every $\psi\notin\{0,\pm\pi\}$ by continuity, and the integrands are bounded by $4^n$. By dominated convergence,
+\[
+F(0)=\frac1{2\pi}\int_{-\pi}^{\pi}F(e^{i\psi})\,d\psi=\frac1\pi\int_0^\pi\operatorname{Re}F(e^{i\psi})\,d\psi.
+\]
+The second equality holds because the integrals over $(-\pi,0)$ and $(0,\pi)$ are complex conjugates of each other. The lemma follows by the substitution $\psi=2\alpha$.
+\end{proof}
+
+\begin{theorem}\label{A:thm:A}
+Let $\lambda\in[0,\infty)^n$. Then
+\begin{equation*}\tag{A1}\label{A:eq:A1}
+J(\lambda)=\int_0^\infty\Bigl(1-\prod_{j=1}^n(1+\lambda_jt)\,e^{-\lambda_jt}\Bigr)\frac{dt}{t^2}.
+\end{equation*}
+Let $Z_1,\dots,Z_n$ be independent random variables with density $f_Z(x)=\frac2\pi(1+x^2)^{-2}$ on $\R$. Then
+\begin{equation*}\tag{A2}\label{A:eq:A2}
+J(\lambda)=\frac\pi2\,\E\Bigl|\sum_{j=1}^n\lambda_jZ_j\Bigr|.
+\end{equation*}
+Let $\chi_1,\dots,\chi_n$ be independent random variables with density $\sqrt{2/\pi}\,r^2e^{-r^2/2}$ on $(0,\infty)$, and let $V_j=\chi_j^{-2}$. Then $\E V_j=1$ and
+\begin{equation*}\tag{A3}\label{A:eq:A3}
+J(\lambda)=\sqrt{\frac\pi2}\;\E\Bigl(\sum_{j=1}^n\lambda_j^2V_j\Bigr)^{1/2}.
+\end{equation*}
+If $\lambda\ne0$ and $L=\lambda_1+\dots+\lambda_n$, then
+\begin{equation*}\tag{A4}\label{A:eq:A4}
+J(\lambda)=L-\sum_{k=2}^n(k-2)!\,\sigma_k(\lambda)\,L^{1-k},
+\end{equation*}
+where $\sigma_k$ is the $k$th elementary symmetric polynomial.
+\end{theorem}
+
+\begin{proof}
+We begin with~\eqref{A:eq:A1}. By Lemma~\ref{A:lem:angle}(ii) and Lemma~\ref{A:lem:fourier} with $X=S_\alpha$,
+\[
+J(\lambda)=\frac2\pi\int_0^{\pi/2}\int_0^\infty\bigl(1-\operatorname{Re}\varphi_{S_\alpha}(t)\bigr)\,\frac{dt}{t^2}\,d\alpha.
+\]
+The integrand is nonnegative, since $\operatorname{Re}\varphi_{S_\alpha}\le1$. By~\eqref{A:eq:xialpha} and independence,
+\[
+\varphi_{S_\alpha}(t)=\prod_{j=1}^n\bigl(\cos^2\alpha\;e^{i\lambda_jt\tan\alpha}+\sin^2\alpha\;e^{-i\lambda_jt\cot\alpha}\bigr),
+\]
+which is continuous on $(0,\pi/2)\times(0,\infty)$. By Tonelli's theorem we may therefore exchange the two integrals. For $t>0$ we have $\varphi_{S_\alpha}(t)=\prod_j\E e^{iu_j\xi^\alpha}$ with $u_j=\lambda_jt\ge0$. Lemma~\ref{A:lem:mv} gives
+\[
+\int_0^{\pi/2}\operatorname{Re}\varphi_{S_\alpha}(t)\,d\alpha=\frac\pi2\prod_{j=1}^n(1+\lambda_jt)\,e^{-\lambda_jt}.
+\]
+Substituting this into the integral over $t$, we obtain~\eqref{A:eq:A1}.
+
+Next we prove~\eqref{A:eq:A2}. We have
+\[
+\int_\R e^{-|t|}e^{-itx}\,dt=2\operatorname{Re}\int_0^\infty e^{-(1+ix)t}\,dt=\frac2{1+x^2}
+\]
+and
+\[
+\int_\R|t|\,e^{-|t|}e^{-itx}\,dt=2\operatorname{Re}\int_0^\infty t\,e^{-(1+ix)t}\,dt=2\operatorname{Re}\frac1{(1+ix)^2}=\frac{2(1-x^2)}{(1+x^2)^2}.
+\]
+Adding, $\int_\R(1+|t|)e^{-|t|}e^{-itx}\,dt=4/(1+x^2)^2=2\pi f_Z(x)$. The functions $(1+|t|)e^{-|t|}$ and $f_Z$ are continuous and integrable. By the Fourier inversion theorem, $\int_\R e^{itx}f_Z(x)\,dx=(1+|t|)e^{-|t|}$ for every real $t$. At $t=0$ this shows that $\int_\R f_Z=1$. Hence $f_Z$ is a probability density, and $\varphi_{Z_1}(t)=(1+|t|)e^{-|t|}$. Since $\lambda_j\ge0$, the characteristic function of $\sum_j\lambda_jZ_j$ is $\prod_j(1+\lambda_j|t|)e^{-\lambda_j|t|}$. Lemma~\ref{A:lem:fourier} with $X=\sum_j\lambda_jZ_j$ now gives
+\[
+\E\Bigl|\sum_{j=1}^n\lambda_jZ_j\Bigr|=\frac2\pi\int_0^\infty\Bigl(1-\prod_{j=1}^n(1+\lambda_jt)\,e^{-\lambda_jt}\Bigr)\frac{dt}{t^2},
+\]
+and~\eqref{A:eq:A2} follows from~\eqref{A:eq:A1}.
+
+We turn to~\eqref{A:eq:A3}. The density $\sqrt{2/\pi}\,r^2e^{-r^2/2}$ is that of the chi distribution with three degrees of freedom. Let $g$ be a standard Gaussian variable, and let $\chi$ be independent of $g$ with this density. For $x\in\R$, the density of $g/\chi$ at $x$ is
+\[
+\int_0^\infty r\cdot\frac{e^{-x^2r^2/2}}{\sqrt{2\pi}}\cdot\sqrt{\frac2\pi}\,r^2e^{-r^2/2}\,dr=\frac1\pi\int_0^\infty r^3e^{-(1+x^2)r^2/2}\,dr=f_Z(x),
+\]
+because $\int_0^\infty r^3e^{-br^2/2}\,dr=2/b^2$ for $b>0$. Hence we may take $Z_j=g_j/\chi_j$. Here $g_1,\dots,g_n$ are standard Gaussian variables, and all the variables $g_1,\dots,g_n$ and $\chi_1,\dots,\chi_n$ are independent. Conditionally on $\chi_1,\dots,\chi_n$, the sum $\sum_j\lambda_jg_j/\chi_j$ is a centered Gaussian variable with variance $\sum_j\lambda_j^2V_j$. Its conditional expected absolute value is therefore $\sqrt{2/\pi}\,(\sum_j\lambda_j^2V_j)^{1/2}$. We take expectations and use~\eqref{A:eq:A2}. We obtain $J(\lambda)=\frac\pi2\sqrt{\frac2\pi}\,\E(\sum_j\lambda_j^2V_j)^{1/2}$, which is~\eqref{A:eq:A3}. Finally,
+\[
+\E V_j=\int_0^\infty r^{-2}\sqrt{\frac2\pi}\,r^2e^{-r^2/2}\,dr=1.
+\]
+
+Finally we prove~\eqref{A:eq:A4}. We put $x_j=\lambda_j/L$ and $t=s/L$ in~\eqref{A:eq:A1}. Since $\sum_jx_j=1$,
+\[
+\prod_{j=1}^n(1+\lambda_jt)\,e^{-\lambda_jt}=e^{-s}\prod_{j=1}^n(1+x_js)=e^{-s}\sum_{k=0}^n\sigma_k(x)\,s^k,
+\]
+with $\sigma_0=1$ and $\sigma_1(x)=1$. Also $dt/t^2=L\,ds/s^2$. Hence
+\[
+\frac{J(\lambda)}L=\int_0^\infty\bigl(1-(1+s)e^{-s}\bigr)\frac{ds}{s^2}-\sum_{k=2}^n\sigma_k(x)\int_0^\infty s^{k-2}e^{-s}\,ds.
+\]
+Splitting the integral is allowed because each piece is integrable. Indeed, $(1-(1+s)e^{-s})s^{-2}$ tends to $1/2$ as $s\to0$ and is $O(s^{-2})$ as $s\to\infty$. The integrals in the sum equal $(k-2)!$. For the first integral we use $\frac{d}{ds}(1+s)e^{-s}=-se^{-s}$. Integration by parts on $[\eps,b]$ gives
+\[
+\int_\eps^b\bigl(1-(1+s)e^{-s}\bigr)\frac{ds}{s^2}=\Bigl[-\frac{1-(1+s)e^{-s}}{s}\Bigr]_\eps^b+\int_\eps^be^{-s}\,ds,
+\]
+which tends to $0+1=1$ as $\eps\to0$ and $b\to\infty$. Since $\sigma_k(x)=\sigma_k(\lambda)L^{-k}$, this proves~\eqref{A:eq:A4}.
+\end{proof}
+
+\begin{corollary}\label{A:cor:bound}
+Let $\lambda\in\R^n$ be nonzero, with $\lambda\in[0,\infty)^n$ or $\lambda\in(-\infty,0]^n$. Then
+\[
+J(\lambda)<\sqrt{\pi/2}\,|\lambda|.
+\]
+Moreover, $J(\mathbf 1_n/\sqrt n)\to\sqrt{\pi/2}$ as $n\to\infty$. Hence the supremum of $J(\lambda)$ over all $n$ and all unit vectors $\lambda\in[0,\infty)^n\cup(-\infty,0]^n$ is $\sqrt{\pi/2}$, and it is not attained.
+\end{corollary}
+
+\begin{proof}
+For $u\ge0$ let $\ell(u)=\log(1+u)-u+u^2/2$. Then $\ell(0)=0$ and $\ell'(u)=u^2/(1+u)>0$ for $u>0$. So
+\[
+(1+u)e^{-u}=e^{-u^2/2}e^{\ell(u)}>e^{-u^2/2}\qquad(u>0).
+\]
+Let $\lambda\in[0,\infty)^n$ be nonzero. For every $t>0$ some $\lambda_jt$ is positive, and therefore
+\[
+\prod_{j=1}^n(1+\lambda_jt)\,e^{-\lambda_jt}=e^{-|\lambda|^2t^2/2}\exp\Bigl(\sum_{j=1}^n\ell(\lambda_jt)\Bigr)>e^{-|\lambda|^2t^2/2}.
+\]
+The substitution $s=|\lambda|t$ and integration by parts give
+\[
+\int_0^\infty\bigl(1-e^{-|\lambda|^2t^2/2}\bigr)\frac{dt}{t^2}=|\lambda|\Bigl(\Bigl[-\frac{1-e^{-s^2/2}}{s}\Bigr]_0^\infty+\int_0^\infty e^{-s^2/2}\,ds\Bigr)=\sqrt{\frac\pi2}\,|\lambda|.
+\]
+By~\eqref{A:eq:A1}, $\sqrt{\pi/2}\,|\lambda|-J(\lambda)$ is the integral of $\bigl(\prod_j(1+\lambda_jt)e^{-\lambda_jt}-e^{-|\lambda|^2t^2/2}\bigr)t^{-2}$ over $(0,\infty)$. Both integrals involved are finite, and this integrand is continuous and positive on $(0,\infty)$. Hence $J(\lambda)<\sqrt{\pi/2}\,|\lambda|$. For $\lambda\in(-\infty,0]^n$ we use $J(-\lambda)=J(\lambda)$.
+
+The limit was shown in Remark~\ref{rem:basic}(iii). It also follows from~\eqref{A:eq:A3}. Let $V_1,V_2,\dots$ be independent copies of the variable $V_1$ of Theorem~\ref{A:thm:A}, and put $\bar V_n=(V_1+\dots+V_n)/n$. Then $J(\mathbf 1_n/\sqrt n)=\sqrt{\pi/2}\;\E\bar V_n^{1/2}$. By the strong law of large numbers, $\bar V_n\to\E V_1=1$ almost surely. The family $\{\bar V_n^{1/2}\}$ is uniformly integrable. Indeed, for $c>0$ we have $\bar V_n^{1/2}<\bar V_n/c$ on the event $\{\bar V_n^{1/2}>c\}$, so the expectation of $\bar V_n^{1/2}$ over this event is at most $\E\bar V_n/c=1/c$. Hence $\E\bar V_n^{1/2}\to1$. The last statement of the corollary follows from the strict inequality and the limit.
+\end{proof}
+
+\begin{corollary}\label{A:cor:schur}
+The function $\tilde J(x)=J(\sqrt{x_1},\dots,\sqrt{x_n})$ is symmetric and concave on $[0,\infty)^n$. In particular, $\tilde J$ is Schur-concave there, that is, $\tilde J(x)\ge \tilde J(y)$ whenever $x$ is majorized by $y$. Consequently:
+\begin{enumerate}[label=(\roman*)]
+\item $J(\lambda)\le J(\mathbf 1_n/\sqrt n)$ for every unit vector $\lambda\in[0,\infty)^n$.
+\item $J(\mathbf 1_n/\sqrt n)\le J(\mathbf 1_{n+1}/\sqrt{n+1})$ for every $n\ge1$. Thus $J(\mathbf 1_n/\sqrt n)$ is nondecreasing in $n$ and converges to $\sqrt{\pi/2}$.
+\end{enumerate}
+\end{corollary}
+
+\begin{proof}
+By~\eqref{A:eq:A3}, $\tilde J(x)=\sqrt{\pi/2}\;\E(\sum_jx_jV_j)^{1/2}$. This is finite, since $\E(\sum_jx_jV_j)^{1/2}\le(\sum_jx_j\E V_j)^{1/2}=(\sum_jx_j)^{1/2}$ by Jensen's inequality. The function $\tilde J$ is symmetric because $V_1,\dots,V_n$ are independent and identically distributed. For every outcome, $x\mapsto(\sum_jx_jV_j)^{1/2}$ is a linear function with values in $[0,\infty)$ composed with the concave square root, so it is concave on $[0,\infty)^n$. Taking expectations preserves concavity. If $x$ is majorized by $y$, then $x$ is a convex combination of coordinate permutations of $y$, by theorems of Hardy, Littlewood and P\'olya and of Birkhoff~\cite{MOA11}. Concavity and symmetry then imply $\tilde J(x)\ge \tilde J(y)$.
+
+For (i), let $x=(\lambda_1^2,\dots,\lambda_n^2)$ and let $x^{(1)},\dots,x^{(n)}$ be its cyclic shifts. Their average is $\mathbf 1_n/n$, so concavity and symmetry give $J(\mathbf 1_n/\sqrt n)=\tilde J(\mathbf 1_n/n)\ge\frac1n\sum_k\tilde J(x^{(k)})=\tilde J(x)=J(\lambda)$. For (ii), apply the same argument in dimension $n+1$ to $x=(1/n,\dots,1/n,0)$, whose cyclic shifts average to $\mathbf 1_{n+1}/(n+1)$. This yields $J(\mathbf 1_{n+1}/\sqrt{n+1})\ge J(\mathbf 1_n/\sqrt n,0)=J(\mathbf 1_n/\sqrt n)$, because appending a zero coordinate does not change $J$. The limit is part of Corollary~\ref{A:cor:bound}.
+\end{proof}
+
+\begin{remark}\label{A:rem:asym}
+The bound of Corollary~\ref{A:cor:bound} is approached at the rate $n^{-1/2}$:
+\[
+\sqrt n\,\bigl(\sqrt{\pi/2}-J(\mathbf 1_n/\sqrt n)\bigr)\to\frac13\qquad(n\to\infty).
+\]
+To see this, let $\ell$ be as in the proof of Corollary~\ref{A:cor:bound}, put $u=t/\sqrt n$ and $y=n\,\ell(u)$. Then $\bigl((1+u)e^{-u}\bigr)^n=e^{-t^2/2}e^{y}$, and~\eqref{A:eq:A1} together with the integral computed in that proof gives
+\[
+\sqrt{\pi/2}-J(\mathbf 1_n/\sqrt n)=\int_0^\infty e^{-t^2/2}\bigl(e^{y}-1\bigr)\frac{dt}{t^2}.
+\]
+For $u\ge0$ we have $0\le\ell(u)\le u^3/3$, because $u^3/3-\ell(u)$ vanishes at $0$ and has derivative $u^3/(1+u)\ge0$. Let $t\le\sqrt n$. Then $0\le y\le t^3/(3\sqrt n)\le t^2/3$ and $e^y-1\le ye^y$, so
+\[
+0\le\sqrt n\,e^{-t^2/2}\bigl(e^{y}-1\bigr)t^{-2}\le\frac t3\,e^{-t^2/6}.
+\]
+The right side is integrable on $(0,\infty)$. For fixed $t$, $\ell(u)/u^3\to1/3$ as $u\to0$, so $\sqrt n\,y\to t^3/3$ and $\sqrt n\,(e^y-1)\to t^3/3$. For $t>\sqrt n$ we have $u>1$, and $(1+u)e^{-u}$ is decreasing on $[0,\infty)$. It follows that $0\le e^{-t^2/2}e^y\le(2/e)^n$. Therefore the part of the integral over $(\sqrt n,\infty)$, multiplied by $\sqrt n$, is at most
+\[
+\sqrt n\int_{\sqrt n}^\infty\bigl((2/e)^n+e^{-t^2/2}\bigr)\frac{dt}{t^2}\le(2/e)^n+e^{-n/2},
+\]
+which tends to $0$. By dominated convergence, the limit equals $\int_0^\infty\frac t3\,e^{-t^2/2}\,dt=\frac13$.
+\end{remark}
+
+\section{Vectors with coordinates of both signs}\label{sec:thmB}
+
+In this section we prove the following theorem. For $\lambda\in\R^n$ we write $\bar\lambda=(|\lambda_1|,\dots,|\lambda_n|)$.
+
+\begin{theorem}\label{B:thm:B}
+For every $n\ge1$ and every $\lambda\in\R^n$,
+\[
+J(\lambda)\le J(\bar\lambda),
+\]
+with strict inequality when $\lambda$ has a positive and a negative coordinate.
+\end{theorem}
+
+Throughout this section, $\eta$ denotes a Bernoulli variable with parameter $q\in[0,1]$, that is, $\P(\eta=1)=q=1-\P(\eta=0)$. For $\mu\in\R^n$ let $S_q(\mu)=\sum_{j=1}^n\mu_j(\eta_j-q)$, where $\eta_1,\dots,\eta_n$ are independent copies of $\eta$. By Lemma~\ref{A:lem:qform},
+\begin{equation}\label{B:eq:qform}
+J(\mu)=\frac12\int_0^1\E|S_q(\mu)|\,\frac{dq}{q(1-q)}.
+\end{equation}
+For $c\in\R$ and $q\in[0,1]$ put
+\begin{equation}\label{B:eq:fc}
+f_c(q)=\E e^{-ic(\eta-q)}=(1-q)\,e^{icq}+q\,e^{-ic(1-q)},
+\end{equation}
+and for a finite family $u=(u_1,\dots,u_r)$ of real numbers put $F_u(q)=\prod_{j=1}^rf_{u_j}(q)$. Then $f_{-c}(q)=\overline{f_c(q)}$, $|f_c(q)|\le1$ and $f_c(0)=f_c(1)=1$. For $v>0$ we write $vu=(vu_1,\dots,vu_r)$ and $|u|_1=|u_1|+\dots+|u_r|$. Finally, $\operatorname{sinc}y=\sin(\pi y)/(\pi y)$ for $y\ne0$ and $\operatorname{sinc}0=1$.
+
+\begin{lemma}[frequency form]\label{B:lem:freq}
+Let $a\in[0,\infty)^{n_1}$ and $b\in[0,\infty)^{n_2}$, and let $\lambda=(a,-b)\in\R^{n_1+n_2}$, so that $\bar\lambda=(a,b)$. For $v>0$ put
+\[
+G(v)=\int_0^1\operatorname{Im}F_{va}(q)\,\operatorname{Im}F_{vb}(q)\,\frac{dq}{q(1-q)}.
+\]
+This integral converges absolutely for every $v>0$, the function $v\mapsto G(v)v^{-2}$ is integrable on $(0,\infty)$, and
+\[
+J(\bar\lambda)-J(\lambda)=\frac2\pi\int_0^\infty G(v)\,\frac{dv}{v^2}.
+\]
+\end{lemma}
+
+\begin{proof}
+Let $\mu\in\R^n$. By~\eqref{B:eq:qform} and Lemma~\ref{A:lem:fourier},
+\[
+J(\mu)=\frac1\pi\int_0^1\int_0^\infty g_\mu(q,v)\,dv\,dq,\qquad g_\mu(q,v)=\frac{1-\operatorname{Re}\E e^{ivS_q(\mu)}}{v^2\,q(1-q)}\ge0.
+\]
+Since $J(\mu)\le\frac\pi2|\mu|$ by Remark~\ref{rem:basic}(i) and homogeneity, Tonelli's theorem shows that $g_\mu$ is integrable on $(0,1)\times(0,\infty)$, with integral $\pi J(\mu)$.
+
+By independence, $\E e^{ivS_q(\mu)}=\prod_j\E e^{iv\mu_j(\eta_j-q)}$. For $c\ge0$ we have $\E e^{-ic(\eta-q)}=f_c(q)$ and $\E e^{ic(\eta-q)}=\overline{f_c(q)}$. Hence, with $z_1=F_{va}(q)$ and $z_2=F_{vb}(q)$,
+\[
+\E e^{ivS_q(\lambda)}=\bar z_1z_2,\qquad \E e^{ivS_q(\bar\lambda)}=\bar z_1\bar z_2.
+\]
+Since $\bar z_1(z_2-\bar z_2)=2i\,\bar z_1\operatorname{Im}z_2$ and $\operatorname{Re}(i\bar z_1)=\operatorname{Im}z_1$,
+\[
+g_{\bar\lambda}(q,v)-g_\lambda(q,v)=\frac{\operatorname{Re}(\bar z_1z_2)-\operatorname{Re}(\bar z_1\bar z_2)}{v^2\,q(1-q)}=\frac{2\operatorname{Im}z_1\operatorname{Im}z_2}{v^2\,q(1-q)}.
+\]
+The absolute value of the left side is at most $g_{\bar\lambda}+g_\lambda$, which is integrable. By Fubini's theorem, $\pi\bigl(J(\bar\lambda)-J(\lambda)\bigr)$ is the integral over $v$ of $2G(v)v^{-2}$, and $G(v)v^{-2}$ is integrable. It remains to show that the integral defining $G(v)$ converges absolutely for every $v$. For complex numbers $y_j$ with $|y_j|\le1$ we have $|\prod_jy_j-1|\le\sum_j|y_j-1|$, and $|f_c(q)-1|\le\E|c(\eta-q)|=2|c|\,q(1-q)$. Hence $|\operatorname{Im}F_u(q)|\le|F_u(q)-1|\le2|u|_1q(1-q)$, and
+\[
+\frac{|\operatorname{Im}F_{va}(q)\operatorname{Im}F_{vb}(q)|}{q(1-q)}\le4v^2|a|_1|b|_1\,q(1-q).\qedhere
+\]
+\end{proof}
+
+\begin{lemma}\label{B:lem:fejer}
+Let $c\in\R$ and $x=c/(2\pi)$, and put $\kappa_x(k)=\operatorname{sinc}^2(x-k)$ for $k\in\mathbb Z$, a sampled Fej\'er kernel. Then $\kappa_x$ is a probability distribution on $\mathbb Z$, and
+\[
+f_c(q)=\sum_{k\in\mathbb Z}\kappa_x(k)\,e^{2\pi ikq}\qquad(0\le q\le1),
+\]
+where the series converges absolutely and uniformly.
+\end{lemma}
+
+\begin{proof}
+If $x$ is an integer, then $e^{-ic}=1$, so $f_c(q)=e^{icq}=e^{2\pi ixq}$, and $\kappa_x$ is the point mass at $x$. Let $x$ not be an integer. For $k\in\mathbb Z$ put $\gamma=c-2\pi k$. Then $\gamma\ne0$ and $e^{i\gamma}=e^{ic}$. Integration by parts gives
+\[
+\int_0^1(1-q)\,e^{i\gamma q}\,dq=\frac i\gamma-\frac{e^{i\gamma}-1}{\gamma^2},\qquad \int_0^1q\,e^{i\gamma q}\,dq=\frac{e^{i\gamma}}{i\gamma}+\frac{e^{i\gamma}-1}{\gamma^2}.
+\]
+Since $f_c(q)e^{-2\pi ikq}=(1-q)e^{i\gamma q}+e^{-ic}\,q\,e^{i\gamma q}$ and $e^{-ic}e^{i\gamma}=1$,
+\[
+\int_0^1f_c(q)\,e^{-2\pi ikq}\,dq=\frac i\gamma-\frac{e^{ic}-1}{\gamma^2}-\frac i\gamma+\frac{1-e^{-ic}}{\gamma^2}=\frac{2-2\cos c}{\gamma^2}=\frac{\sin^2(\pi x)}{\pi^2(x-k)^2}=\kappa_x(k).
+\]
+Since $\kappa_x(k)\le\pi^{-2}(x-k)^{-2}$, the series $\sum_k\kappa_x(k)e^{2\pi ikq}$ converges absolutely and uniformly on $\R$. Its sum is a continuous function with period $1$ whose Fourier coefficients are the numbers $\kappa_x(k)$. The function $f_c$ is continuous on $[0,1]$ with $f_c(0)=f_c(1)$, so its periodic extension is continuous, and it has the same Fourier coefficients. Two continuous periodic functions with the same Fourier coefficients coincide, by Fej\'er's theorem. This proves the expansion, and at $q=0$ it shows that $\sum_k\kappa_x(k)=f_c(0)=1$.
+\end{proof}
+
+For a finite family $u=(u_1,\dots,u_r)$ of real numbers let $\mathcal K_u=\kappa_{x_1}*\dots*\kappa_{x_r}$, with $x_j=u_j/(2\pi)$, be the convolution of the distributions of Lemma~\ref{B:lem:fejer}, and put $\beta_k(u)=\mathcal K_u(k)-\mathcal K_u(-k)$ for $k\ge1$.
+
+\begin{corollary}\label{B:cor:skewseries}
+For every finite family $u$ of real numbers, $\sum_{k\ge1}|\beta_k(u)|\le1$ and
+\[
+\operatorname{Im}F_u(q)=\sum_{k\ge1}\beta_k(u)\sin(2\pi kq)\qquad(0\le q\le1).
+\]
+\end{corollary}
+
+\begin{proof}
+By Lemma~\ref{B:lem:fejer}, $F_u(q)$ is a product of absolutely convergent series. Their product is the absolutely convergent series whose coefficients are the convolution of the coefficient sequences, so $F_u(q)=\sum_k\mathcal K_u(k)e^{2\pi ikq}$. We take imaginary parts and combine the terms with indices $k$ and $-k$. Finally, $\sum_{k\ge1}|\beta_k(u)|\le\sum_{k\ne0}\mathcal K_u(k)\le1$.
+\end{proof}
+
+\begin{lemma}[positive skew]\label{B:lem:skew}
+Let $u_1,\dots,u_r\ge0$. Then $\beta_k(u)\ge0$ for every $k\ge1$, that is, $\mathcal K_u(k)\ge\mathcal K_u(-k)$. If moreover $r\ge1$ and $0<u_j<2\pi$ for every $j$, then $\beta_1(u)>0$.
+\end{lemma}
+
+A probability distribution $s$ on $\mathbb Z$ is \emph{symmetric unimodal} if $s(j)=s(-j)$ and $s(j)\ge s(j+1)$ for all $j\ge0$. Let $\mathcal P$ be the set of laws of random variables $N+Y$, where $N$ and $Y$ are independent, $N$ takes values in $\{0,1,2,\dots\}$, and $Y$ has a symmetric unimodal law. For $\rho\in(0,1)$ let $g_\rho(j)=\frac{1-\rho}{1+\rho}\rho^{|j|}$, $j\in\mathbb Z$, be the two-sided geometric law, which is symmetric unimodal. For $x\ge0$ and $\tau>0$ let
+\[
+\mathcal D_{x,\tau}(k)=\frac{e^{-\tau|k-x|}}{\Lambda_\tau(x)}\quad(k\in\mathbb Z),\qquad \Lambda_\tau(x)=\sum_{l\in\mathbb Z}e^{-\tau|l-x|}.
+\]
+The proof of Lemma~\ref{B:lem:skew} rests on four facts.
+\begin{enumerate}[label=(\alph*)]
+\item Let $\nu$ be the law of $N+Y$ as in the definition of $\mathcal P$, and let $s$ be the law of $Y$. Then $\nu(k)\ge\nu(-k)$ for every $k\ge1$, and $\nu(1)-\nu(-1)\ge\P(N=1)\bigl(s(0)-s(2)\bigr)$.
+\item If $s$ and $s'$ are symmetric unimodal, then so is $s*s'$, and $(s*s')(0)-(s*s')(1)\ge\bigl(s(0)-s(1)\bigr)\bigl(s'(0)-s'(1)\bigr)$. In particular, $\mathcal P$ is closed under convolution.
+\item Let $x\ge0$ and $\tau>0$. Write $x=m+y$ with an integer $m\ge0$ and $y\in[0,1)$, and put $\rho=e^{-\tau}$. Then $\mathcal D_{x,\tau}$ is the law of $m+B+Y$, where $B$ and $Y$ are independent, $Y$ has law $g_\rho$, $B$ takes the values $0$ and $1$, and $\P(B=1)<1$, with $\P(B=1)>0$ if $y>0$. In particular, $\mathcal D_{x,\tau}\in\mathcal P$.
+\item Let $x>0$ not be an integer, and put $\omega_x(\tau)=\pi^{-2}\sin^2(\pi x)\,\tau\,\Lambda_\tau(x)$ for $\tau>0$. Then $\omega_x$ is a probability density on $(0,\infty)$, and $\kappa_x(k)=\int_0^\infty\omega_x(\tau)\mathcal D_{x,\tau}(k)\,d\tau$ for every $k\in\mathbb Z$.
+\end{enumerate}
+
+\begin{proof}[Proof of (a)]
+For $k\ge1$,
+\[
+\nu(k)-\nu(-k)=\sum_{m\ge0}\P(N=m)\bigl(s(k-m)-s(-k-m)\bigr)=\sum_{m\ge0}\P(N=m)\bigl(s(|k-m|)-s(k+m)\bigr).
+\]
+Every term is nonnegative, because $s$ is even and $0\le|k-m|\le k+m$. For $k=1$ the term with $m=1$ is $\P(N=1)(s(0)-s(2))$.
+\end{proof}
+
+\begin{proof}[Proof of (b)]
+For an integer $R\ge0$ let $U_R$ be the uniform distribution on $\{-R,\dots,R\}$. Let $s$ be symmetric unimodal and put $c_R=(2R+1)\bigl(s(R)-s(R+1)\bigr)\ge0$. For every $j$, $\sum_Rc_RU_R(j)=\sum_{R\ge|j|}\bigl(s(R)-s(R+1)\bigr)=s(j)$, because $s(R)\to0$ as $R\to\infty$. Summing over $j$ gives $\sum_Rc_R=1$. Thus $s$ is a mixture of the laws $U_R$. For $R,R'\ge0$, $(U_R*U_{R'})(j)$ is the number of points in $\{-R,\dots,R\}\cap\{j-R',\dots,j+R'\}$, divided by $(2R+1)(2R'+1)$. This is an even function of $j$. It is nonincreasing on $\{0,1,2,\dots\}$: when $j\ge0$ increases by $1$, the point $j+R'+1$ enters the second set and $j-R'$ leaves it, and if $j+R'+1\le R$, then $R'<R$ and $-R<j-R'\le R$. So $U_R*U_{R'}$ is symmetric unimodal. Let $c'_R$ be the coefficients of $s'$. Then $s*s'=\sum_{R,R'}c_Rc'_{R'}\,U_R*U_{R'}$ is a mixture of symmetric unimodal laws, hence symmetric unimodal, and
+\[
+(s*s')(0)-(s*s')(1)=\sum_{R,R'}c_Rc'_{R'}\bigl((U_R*U_{R'})(0)-(U_R*U_{R'})(1)\bigr)\ge c_0c'_0,
+\]
+because every term is nonnegative and $U_0*U_0$ is the point mass at $0$. Here $c_0=s(0)-s(1)$ and $c'_0=s'(0)-s'(1)$. Finally, let $N,Y,N',Y'$ be independent, with $N+Y$ and $N'+Y'$ as in the definition of $\mathcal P$. Then $N+Y+N'+Y'=(N+N')+(Y+Y')$, where $N+N'$ takes values in $\{0,1,2,\dots\}$, $Y+Y'$ has a symmetric unimodal law, and the two are independent.
+\end{proof}
+
+\begin{proof}[Proof of (c)]
+Put
+\[
+w_0=e^{-\tau y}-\rho^2e^{\tau y},\qquad w_1=\rho\bigl(e^{\tau y}-e^{-\tau y}\bigr).
+\]
+Then $w_0>0$, because $e^{-2\tau y}>e^{-2\tau}=\rho^2$, and $w_1\ge0$, with $w_1>0$ if $y>0$. Let $\P(B=1)=w_1/(w_0+w_1)$, and let $h$ be the law of $m+B+Y$. For $k\in\mathbb Z$ and $j=k-m$,
+\[
+h(k)=\frac{w_0\,g_\rho(j)+w_1\,g_\rho(j-1)}{w_0+w_1}.
+\]
+If $j\ge1$, then $w_0\rho^j+w_1\rho^{j-1}=\rho^{j-1}(w_0\rho+w_1)=\rho^je^{\tau y}(1-\rho^2)=(1-\rho^2)\,e^{-\tau(j-y)}$. If $j\le0$, then $w_0\rho^{-j}+w_1\rho^{1-j}=\rho^{-j}(w_0+w_1\rho)=\rho^{-j}e^{-\tau y}(1-\rho^2)=(1-\rho^2)\,e^{-\tau(y-j)}$. Since $0\le y<1$, in both cases $h(k)$ is a constant multiple of $e^{-\tau|j-y|}=e^{-\tau|k-x|}$, with a constant that does not depend on $k$. Hence $h=\mathcal D_{x,\tau}$, and $\mathcal D_{x,\tau}\in\mathcal P$ with $N=m+B$.
+\end{proof}
+
+\begin{proof}[Proof of (d)]
+For $k\in\mathbb Z$ we have $|k-x|>0$ and $\int_0^\infty\tau e^{-\tau|k-x|}\,d\tau=(k-x)^{-2}$. Hence
+\[
+\kappa_x(k)=\frac{\sin^2(\pi x)}{\pi^2(k-x)^2}=\int_0^\infty\frac{\sin^2(\pi x)}{\pi^2}\,\tau e^{-\tau|k-x|}\,d\tau=\int_0^\infty\omega_x(\tau)\mathcal D_{x,\tau}(k)\,d\tau.
+\]
+Summing over $k$ and using Tonelli's theorem gives $\int_0^\infty\omega_x(\tau)\,d\tau=\sum_k\kappa_x(k)=1$.
+\end{proof}
+
+\begin{proof}[Proof of Lemma~\ref{B:lem:skew}]
+Let $x_j=u_j/(2\pi)\ge0$, and let $I$ be the set of indices $j$ for which $x_j$ is not an integer. For $j\notin I$, $\kappa_{x_j}$ is the point mass at the integer $x_j\ge0$, which belongs to $\mathcal P$. For $\tau=(\tau_j)_{j\in I}\in(0,\infty)^I$ let $\nu_\tau$ be the convolution of the laws $\mathcal D_{x_j,\tau_j}$, $j\in I$, and $\kappa_{x_j}$, $j\notin I$. By (b) and (c), $\nu_\tau\in\mathcal P$. By (d), the definition of convolution and Tonelli's theorem (all terms are nonnegative),
+\begin{equation}\label{B:eq:mixture}
+\mathcal K_u(k)=\int_{(0,\infty)^I}\nu_\tau(k)\prod_{j\in I}\omega_{x_j}(\tau_j)\,d\tau\qquad(k\in\mathbb Z).
+\end{equation}
+By (a), $\nu_\tau(k)-\nu_\tau(-k)\ge0$ for every $\tau$ and every $k\ge1$, and integrating over $\tau$ we get $\beta_k(u)\ge0$. If $I$ is empty, $\mathcal K_u=\nu_\tau$ is a point mass at a nonnegative integer.
+
+Now let $0<u_j<2\pi$ for every $j$. Then $0<x_j<1$, so $I=\{1,\dots,r\}$. By (c), $\nu_\tau$ is the law of $N+Y$, where $N=B_1+\dots+B_r$ and $Y=Y_1+\dots+Y_r$, all $B_j$ and $Y_j$ are independent, $0<\P(B_j=1)<1$, and $Y_j$ has law $g_{\rho_j}$ with $\rho_j=e^{-\tau_j}$. Then $\P(N=1)>0$. Let $s$ be the law of $Y$. Since $g_\rho(0)>g_\rho(1)$ for every $\rho$, (b) and induction on $r$ give $s(0)>s(1)\ge s(2)$. By (a), $\nu_\tau(1)>\nu_\tau(-1)$ for every $\tau$, and $\beta_1(u)>0$ follows from~\eqref{B:eq:mixture}.
+\end{proof}
+
+\begin{lemma}[the kernel]\label{B:lem:kernel}
+For integers $k,l\ge1$,
+\[
+W(k,l)=\int_0^1\sin(2\pi kq)\sin(2\pi lq)\,\frac{dq}{q(1-q)}=\int_{2\pi|k-l|}^{2\pi(k+l)}\frac{1-\cos y}{y}\,dy>0,
+\]
+and $\int_0^1|\sin(2\pi kq)\sin(2\pi lq)|\,dq/(q(1-q))\le4\bigl(1+\log(\pi\min(k,l))\bigr)$.
+\end{lemma}
+
+\begin{proof}
+Let $P(q)=\sin(2\pi kq)\sin(2\pi lq)$. Then $P(1-q)=P(q)$ and $|P(q)|\le4\pi^2kl\,\min(q,1-q)^2$, so the integrals of $P(q)/q$ and $P(q)/(1-q)$ over $(0,1)$ converge separately and are equal. Since $1/(q(1-q))=1/q+1/(1-q)$ and $2\sin\alpha\sin\beta=\cos(\alpha-\beta)-\cos(\alpha+\beta)$,
+\[
+W(k,l)=2\int_0^1P(q)\,\frac{dq}q=\int_0^1\Bigl(\bigl(1-\cos(2\pi(k+l)q)\bigr)-\bigl(1-\cos(2\pi(k-l)q)\bigr)\Bigr)\frac{dq}q.
+\]
+Both parts converge separately. The substitutions $y=2\pi(k+l)q$ and $y=2\pi|k-l|q$ (the second part vanishes if $k=l$) give
+\[
+W(k,l)=\int_0^{2\pi(k+l)}\frac{1-\cos y}{y}\,dy-\int_0^{2\pi|k-l|}\frac{1-\cos y}{y}\,dy=\int_{2\pi|k-l|}^{2\pi(k+l)}\frac{1-\cos y}{y}\,dy.
+\]
+The integrand is continuous and nonnegative and vanishes only at isolated points, and $|k-l|<k+l$, so $W(k,l)>0$. For the second statement let $l_0=\min(k,l)$. By the symmetry $q\mapsto1-q$, the bound $1/(1-q)\le2$ on $(0,1/2]$, and $|P(q)|\le|\sin(2\pi l_0q)|\le\min(1,2\pi l_0q)$,
+\[
+\int_0^1\frac{|P(q)|}{q(1-q)}\,dq\le4\int_0^{1/2}\min(1,2\pi l_0q)\,\frac{dq}q=4\bigl(1+\log(\pi l_0)\bigr).\qedhere
+\]
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{B:thm:B}]
+Permuting the coordinates of $\lambda$, changing the sign of $\lambda$ and appending or deleting zero coordinates change neither $J(\lambda)$ nor $J(\bar\lambda)$. If all nonzero coordinates of $\lambda$ have the same sign, then $J(\lambda)=J(\bar\lambda)$. Otherwise we may assume that $\lambda=(a,-b)$ with $a\in(0,\infty)^{n_1}$ and $b\in(0,\infty)^{n_2}$, where $n_1,n_2\ge1$. Fix $v>0$. By Corollary~\ref{B:cor:skewseries},
+\[
+\operatorname{Im}F_{va}(q)=\sum_{k\ge1}\beta_k(va)\sin(2\pi kq),\qquad \operatorname{Im}F_{vb}(q)=\sum_{l\ge1}\beta_l(vb)\sin(2\pi lq).
+\]
+We insert these series into the definition of $G(v)$ in Lemma~\ref{B:lem:freq} and integrate term by term. This is allowed, because by Lemma~\ref{B:lem:kernel}
+\[
+\sum_{k,l\ge1}|\beta_k(va)|\,|\beta_l(vb)|\int_0^1\frac{|\sin(2\pi kq)\sin(2\pi lq)|}{q(1-q)}\,dq\le4\Bigl(\sum_{k\ge1}|\beta_k(va)|\bigl(1+\log(\pi k)\bigr)\Bigr)\Bigl(\sum_{l\ge1}|\beta_l(vb)|\Bigr),
+\]
+and both factors are finite. The second is at most $1$. For the first, let $M=M_1+\dots+M_{n_1}$ with independent $M_j$ of laws $\kappa_{x_j}$, where $x_j=va_j/(2\pi)$, so that $M$ has law $\mathcal K_{va}$. Since $|\beta_k(va)|\le\mathcal K_{va}(k)+\mathcal K_{va}(-k)$,
+\[
+\sum_{k\ge1}|\beta_k(va)|\bigl(1+\log(\pi k)\bigr)\le1+\log\pi+\E\log(1+|M|)\le1+\log\pi+\sum_{j=1}^{n_1}\E\log(1+|M_j|),
+\]
+where the last step uses $1+|y+y'|\le(1+|y|)(1+|y'|)$. Each $\E\log(1+|M_j|)$ is finite, because $\kappa_x(k)\le\pi^{-2}(k-x)^{-2}$ for $k\ne x$. Therefore
+\[
+G(v)=\sum_{k,l\ge1}\beta_k(va)\,\beta_l(vb)\,W(k,l),
+\]
+and every term is nonnegative by Lemmas~\ref{B:lem:skew} and~\ref{B:lem:kernel}. So $G(v)\ge0$ for every $v>0$, and $J(\bar\lambda)\ge J(\lambda)$ by Lemma~\ref{B:lem:freq}.
+
+For the strict inequality let $v_0=2\pi/\max(a_1,\dots,a_{n_1},b_1,\dots,b_{n_2})$ and $0<v<v_0$. All coordinates of $va$ and $vb$ lie in $(0,2\pi)$, so $\beta_1(va)>0$ and $\beta_1(vb)>0$ by Lemma~\ref{B:lem:skew}. Since all terms of the double series are nonnegative, $G(v)\ge\beta_1(va)\beta_1(vb)W(1,1)>0$ for $0<v<v_0$, and $J(\bar\lambda)>J(\lambda)$ by Lemma~\ref{B:lem:freq}.
+\end{proof}
+
+For $v>0$ and $\mu\in\R^n$ put
+\begin{equation}\label{B:eq:Cv}
+C_v(\mu)=\int_0^1\E\bigl(1-\cos(vS_q(\mu))\bigr)\,\frac{dq}{q(1-q)}.
+\end{equation}
+Since $1-\cos y\le y^2/2$ and $\E S_q(\mu)^2=|\mu|^2q(1-q)$, we have $C_v(\mu)\le v^2|\mu|^2/2<\infty$. By~\eqref{B:eq:qform}, Lemma~\ref{A:lem:fourier} and Tonelli's theorem, as in the proof of Lemma~\ref{B:lem:freq},
+\begin{equation}\label{B:eq:JCv}
+J(\mu)=\frac1\pi\int_0^\infty C_v(\mu)\,\frac{dv}{v^2}.
+\end{equation}
+
+\begin{corollary}\label{B:cor:freq}
+For every $n\ge1$, every $\lambda\in\R^n$ and every $v>0$, $C_v(\lambda)\le C_v(\bar\lambda)$.
+\end{corollary}
+
+\begin{proof}
+As in the proof of Theorem~\ref{B:thm:B}, we may assume that $\lambda=(a,-b)$ with $a\in(0,\infty)^{n_1}$ and $b\in(0,\infty)^{n_2}$, since otherwise $C_v(\lambda)=C_v(\bar\lambda)$. The computation in the proof of Lemma~\ref{B:lem:freq}, without the integration over $v$, shows that $C_v(\bar\lambda)-C_v(\lambda)=2G(v)$, and $G(v)\ge0$ by the proof of Theorem~\ref{B:thm:B}.
+\end{proof}
+
+\begin{remark}\label{B:rem:fixedtheta}
+The integration over $\theta$ in~\eqref{eq:J}, or over $q$ in~\eqref{B:eq:qform}, cannot be omitted. For fixed $p$ the inequality $\E|\sum_j\lambda_j\xi_j^{(p)}|\le\E|\sum_j|\lambda_j|\xi_j^{(p)}|$ can fail. Let $p=4/5$, which is $p(\theta)$ for $\sin\theta=3/5$. Then $\xi^{(p)}$ takes the values $1/2$ and $-2$ with probabilities $4/5$ and $1/5$. For $\lambda=(1,1,1,1,-1)$ a direct computation shows that $\E|\sum_j\lambda_j\xi_j^{(p)}|=5888/3125$, while $\E|\sum_j\xi_j^{(p)}|=1024/625=5120/3125$.
+\end{remark}
+
+\begin{remark}\label{B:rem:frequency}
+For $0<\alpha<2$, $|y|^\alpha$ is a positive multiple of $\int_0^\infty(1-\cos vy)\,v^{-1-\alpha}\,dv$, and integrating Corollary~\ref{B:cor:freq} over $v$ we obtain
+\[
+\int_0^1\E|S_q(\lambda)|^\alpha\,\frac{dq}{q(1-q)}\le\int_0^1\E|S_q(\bar\lambda)|^\alpha\,\frac{dq}{q(1-q)}.
+\]
+Both sides are finite, since $\E|S_q(\mu)|^\alpha\le(|\mu|^2q(1-q))^{\alpha/2}$. For $\alpha=1$ this is Theorem~\ref{B:thm:B}, by~\eqref{B:eq:qform}. For $\alpha=2$ both sides are equal, since $\E S_q(\mu)^2=|\mu|^2q(1-q)$.
+\end{remark}
+
+\section{The constant}\label{sec:constant}
+
+We now prove Theorem~\ref{thm:main}.
+
+\begin{proof}[Proof of Theorem~\ref{thm:main}]
+Let $n\ge1$ and let $\lambda\in\R^n$ be a unit vector. Then $\bar\lambda$ is a unit vector in $[0,\infty)^n$, and Theorem~\ref{B:thm:B} and Corollary~\ref{A:cor:schur}(i) give
+\[
+J(\lambda)\le J(\bar\lambda)\le J(\mathbf 1_n/\sqrt n).
+\]
+Hence $K_n=J(\mathbf 1_n/\sqrt n)$. By~\eqref{A:eq:A4} with $L=\sqrt n$ and $\sigma_k(\mathbf 1_n/\sqrt n)=\binom nk n^{-k/2}$,
+\[
+K_n=\sqrt n-\sum_{k=2}^n(k-2)!\binom nk n^{-k/2}\,n^{(1-k)/2}=c_n.
+\]
+By Theorem~\ref{thm:reduction}, $\E|f-\E f|\le c_n\E|\nabla f|$ for every $f\colon\{-1,1\}^n\to\R$. By Corollary~\ref{A:cor:bound}, $c_n<\sqrt{\pi/2}$ and $c_n\to\sqrt{\pi/2}$, and by Corollary~\ref{A:cor:schur}(ii) the sequence $(c_n)$ is nondecreasing. The values of $c_1$, $c_2$ and $c_3$ follow from the formula. In particular, $C\le K=\sqrt{\pi/2}$.
+
+The lower bound $C\ge\sqrt{\pi/2}$ is known~\cite{ILvHV}, and we include the short argument. Let $g\colon\R\to\R$ be bounded and continuously differentiable, with $g'$ bounded and uniformly continuous, and let $\varpi$ be the modulus of continuity of $g'$. Put $f_n(x)=g(s_n(x))$ with $s_n(x)=(x_1+\dots+x_n)/\sqrt n$. By the mean value theorem, $D_jf_n(x)=x_jg'(s_n(x))/\sqrt n+e_j(x)$ with $|e_j(x)|\le\varpi(2/\sqrt n)/\sqrt n$. Since $\sum_jx_j^2/n=1$, it follows that $\bigl||\nabla f_n|(x)-|g'(s_n(x))|\bigr|\le\varpi(2/\sqrt n)$ for every $x$. By the central limit theorem, $s_n(x)$ converges in law to a standard Gaussian variable $G$. Since $g$ and $g'$ are bounded and continuous, $\E|f_n-\E f_n|\to\E|g(G)-\E g(G)|$ and $\E|\nabla f_n|\to\E|g'(G)|$, and therefore $\E|g(G)-\E g(G)|\le C\,\E|g'(G)|$. For $\eps>0$ let $g_\eps(s)=\operatorname{erf}(s/(\eps\sqrt2))$, where $\operatorname{erf}(y)=\frac2{\sqrt\pi}\int_0^ye^{-r^2}\,dr$. Then $\E g_\eps(G)=0$, $\E|g_\eps(G)|\to1$ as $\eps\to0$, and
+\[
+\E|g_\eps'(G)|=\frac2\eps\int_\R\frac{e^{-s^2/(2\eps^2)}}{\sqrt{2\pi}}\cdot\frac{e^{-s^2/2}}{\sqrt{2\pi}}\,ds=\frac2{\sqrt{2\pi(1+\eps^2)}}\to\sqrt{\frac2\pi}.
+\]
+Hence $C\ge\sqrt{\pi/2}$.
+\end{proof}
+
+The constants $c_n$ equal $1$, $1.0606602$, $1.0905505$, $1.1574618$, $1.2209961$ and $1.2428767$ for $n=1$, $2$, $3$, $10$, $100$ and $1000$. By Remark~\ref{A:rem:asym}, $\sqrt n\,(\sqrt{\pi/2}-c_n)\to1/3$, and this quantity equals $0.330$ at $n=1000$. For $f(x)=x_1\cdots x_n$ we have $\nabla f(y)=f(y)\mathbf 1_n$ and hence $\E_y\,J(\nabla f(y))=J(\mathbf 1_n)=c_n\E|\nabla f|$. So the second inequality of Theorem~\ref{thm:reduction} is attained, and the theorem yields no bound below $c_n$ in dimension $n$.
+
+\begin{remark}\label{con:rem:complex}
+Durcik, Ivanisvili and Roos~\cite[Section~1.5]{DIR26} consider~\eqref{eq:poincare} for complex-valued functions $f$, with $|\nabla f|^2=\sum_j|D_jf|^2$. They state that the best constant lies in $[\sqrt{\pi/2},\pi/2)$, and that it is conjectured to equal $\sqrt{\pi/2}$ (their constant $C_1$ is the reciprocal). Theorem~\ref{thm:main} does not settle this conjecture, but it implies the bound $\pi^{3/2}/4\approx1.3921$ for complex-valued $f$. Indeed, $|z|=\frac14\int_0^{2\pi}|\operatorname{Re}(e^{-i\phi}z)|\,d\phi$ for $z\in\mathbb C$. The real function $\operatorname{Re}(e^{-i\phi}f)$ has mean $\operatorname{Re}(e^{-i\phi}\E f)$ and gradient $\operatorname{Re}(e^{-i\phi}\nabla f)$. Theorem~\ref{thm:main} and Tonelli's theorem give
+\[
+\E|f-\E f|\le\sqrt{\frac\pi2}\;\E\Bigl[\frac14\int_0^{2\pi}\bigl|\operatorname{Re}\bigl(e^{-i\phi}\nabla f\bigr)\bigr|\,d\phi\Bigr]\le\sqrt{\frac\pi2}\cdot\frac\pi{2\sqrt2}\,\E|\nabla f|=\frac{\pi^{3/2}}4\,\E|\nabla f|.
+\]
+The second inequality follows from the Cauchy--Schwarz inequality and $\int_0^{2\pi}|\operatorname{Re}(e^{-i\phi}w)|^2\,d\phi=\pi|w|^2$ for $w\in\mathbb C^n$. This improves the upper end of the known range from $\pi/2$ to $\pi^{3/2}/4$.
+\end{remark}
+
+\begin{remark}\label{con:rem:dim2}
+For $n=2$ the best constant is $1$, attained by $f(x)=x_1$, while $c_2=3/(2\sqrt2)$. To see that $1$ suffices, let $f\colon\{-1,1\}^2\to\R$. Then $\E|f-\E f|=\max_g\E[(f-\E f)g]$, where $g$ runs over the functions $\{-1,1\}^2\to\{-1,1\}$. If $g-\E g=D_1A_1+D_2A_2$ for real functions $A_1$ and $A_2$, then, since each $D_j$ is self-adjoint,
+\[
+\E[(f-\E f)g]=\E[f\,(g-\E g)]=\E[D_1f\,A_1+D_2f\,A_2]\le\max_x|A(x)|\;\E|\nabla f|,
+\]
+where $A=(A_1,A_2)$. If $g$ is replaced by $-g$, or composed with a symmetry of the square, then a pair $A$ for the new function is obtained from the old pair in the same way, with its coordinates permuted accordingly, and $\max_x|A(x)|$ does not change. Up to these operations, $g$ is a constant, $x_1$, $x_1x_2$ or $\min(x_1,x_2)=(x_1x_2+x_1+x_2-1)/2$. For these we take $A=0$, $A=(x_1,0)$, $A=(x_1x_2,x_1x_2)/2$ and
+\[
+A_1=\frac{x_1}2+\frac{x_1x_2}4+\frac{x_2}{10}-\frac3{20},\qquad A_2=\frac{x_2}2+\frac{x_1x_2}4+\frac{x_1}{10}-\frac3{20},
+\]
+respectively. In the last case $A$ takes the values $(7/10,7/10)$, $(0,-4/5)$, $(-4/5,0)$ and $(-1/2,-1/2)$ at $(1,1)$, $(1,-1)$, $(-1,1)$ and $(-1,-1)$. In all cases $|A|\le1$.
+\end{remark}
+
+\section{An elementary proof of the upper bound}\label{sec:elem}
+
+We now prove $K\le\sqrt{\pi/2}$ a second time, without the complex analysis of Section~\ref{sec:sharp}. It combines Corollary~\ref{B:cor:freq} with an inequality at a fixed frequency for vectors with nonnegative coordinates (Theorem~\ref{E:thm:pfa}), whose proof uses Lemma~\ref{B:lem:skew} once more. Unlike Section~\ref{sec:constant}, this argument does not yield the constants $c_n$.
+
+We keep the notation of Section~\ref{sec:thmB}. For a finite family $u=(u_1,\dots,u_r)$ of nonnegative numbers and for $\tau\ge0$ put
+\[
+\mathcal G_\tau(q)=e^{-\tau q(1-q)/2},\qquad \mathcal C(u;\tau)=\int_0^1\bigl(1-\operatorname{Re}\bigl[\mathcal G_\tau(q)F_u(q)\bigr]\bigr)\frac{dq}{q(1-q)},
+\]
+where $F_u=1$ for the empty family, and let $\mathcal C_G(\rho)=\mathcal C(\emptyset;\rho^2)$ for $\rho\ge0$. By Lemma~\ref{E:lem:diff} below the integrand is bounded, so $\mathcal C(u;\tau)$ is finite. For $\lambda\in[0,\infty)^n$ and $v>0$, the functional~\eqref{B:eq:Cv} satisfies $C_v(\lambda)=\mathcal C(v\lambda;0)$, because $\E\cos(vS_q(\lambda))=\operatorname{Re}\prod_j\overline{f_{v\lambda_j}(q)}=\operatorname{Re}F_{v\lambda}(q)$.
+
+\begin{theorem}\label{E:thm:pfa}
+For every finite family $u$ of nonnegative numbers, with Euclidean norm $|u|$, and every $\tau\ge0$,
+\[
+\mathcal C(u;\tau)\le\mathcal C_G\bigl((|u|^2+\tau)^{1/2}\bigr).
+\]
+In particular, $C_v(\lambda)\le\mathcal C_G(v|\lambda|)$ for every $\lambda\in[0,\infty)^n$ and every $v>0$.
+\end{theorem}
+
+\begin{lemma}\label{E:lem:ident}
+For $c\in\R$ and $q\in[0,1]$ let $h_c(q)=e^{icq}-e^{-ic(1-q)}$. Then $|h_c(q)|\le2$ and
+\[
+\frac{\partial}{\partial c}f_c(q)=i\,q(1-q)\,h_c(q),\qquad \frac{\partial}{\partial q}f_c(q)=ic\,f_c(q)-h_c(q).
+\]
+For $\tau\ge0$, $\mathcal G_\tau(0)=\mathcal G_\tau(1)=1$, $0<\mathcal G_\tau\le1$, $1-\mathcal G_\tau(q)\le\tau q(1-q)/2$, $\partial_\tau \mathcal G_\tau(q)=-\frac12q(1-q)\mathcal G_\tau(q)$, and
+\[
+\mathcal G_\tau''(q)=\Bigl(\tau+\frac{\tau^2(1-2q)^2}4\Bigr)\mathcal G_\tau(q)\ge0.
+\]
+\end{lemma}
+
+\begin{proof}
+Differentiating the two terms of~\eqref{B:eq:fc} gives $\partial_c[(1-q)e^{icq}]=iq(1-q)e^{icq}$ and $\partial_c[qe^{-ic(1-q)}]=-iq(1-q)e^{-ic(1-q)}$, and also $\partial_q[(1-q)e^{icq}]=-e^{icq}+ic(1-q)e^{icq}$ and $\partial_q[qe^{-ic(1-q)}]=e^{-ic(1-q)}+icq\,e^{-ic(1-q)}$. Adding, we obtain the two formulas. The statements about $\mathcal G_\tau$ follow from $\mathcal G_\tau'(q)=-\frac\tau2(1-2q)\mathcal G_\tau(q)$ and $1-e^{-y}\le y$ for $y\ge0$.
+\end{proof}
+
+\begin{lemma}\label{E:lem:diff}
+Let $\mathcal I$ be a compact interval, and let $t\mapsto(u(t),\tau(t))$ be a continuous map from $\mathcal I$ to $[0,\infty)^r\times[0,\infty)$. Put $H(q,t)=\mathcal G_{\tau(t)}(q)F_{u(t)}(q)$ and $\Phi(t)=\mathcal C(u(t);\tau(t))$. Then $|1-H(q,t)|\le(\tau(t)/2+2|u(t)|_1)\,q(1-q)$, and $\Phi$ is continuous on $\mathcal I$. If the map is continuously differentiable on $\mathcal I$, then so is $\Phi$ (with one-sided derivatives at the end points), and
+\[
+\Phi'(t)=-\int_0^1\operatorname{Re}\frac{\partial H}{\partial t}(q,t)\,\frac{dq}{q(1-q)}.
+\]
+\end{lemma}
+
+\begin{proof}
+As in the proof of Lemma~\ref{B:lem:freq}, $|\prod_jy_j-1|\le\sum_j|y_j-1|$ for complex numbers $y_j$ with $|y_j|\le1$, and $|f_c(q)-1|\le2|c|q(1-q)$. Together with Lemma~\ref{E:lem:ident} this proves the bound for $|1-H|$. So the integrand of $\Phi(t)$ is bounded on $(0,1)\times\mathcal I$, and it is continuous in $t$ for each $q$. The continuity of $\Phi$ follows by dominated convergence. If the map is continuously differentiable, Lemma~\ref{E:lem:ident} and the product rule give
+\[
+\frac{\partial H}{\partial t}=\sum_ju_j'(t)\,i\,q(1-q)\,h_{u_j(t)}\,H_j-\frac{\tau'(t)}2\,q(1-q)\,H,\qquad H_j=\mathcal G_{\tau(t)}\prod_{l\ne j}f_{u_l(t)}.
+\]
+Hence $|\partial_tH|/(q(1-q))\le2\sum_j|u_j'(t)|+|\tau'(t)|/2$, which is bounded on $(0,1)\times\mathcal I$, and $\partial_tH/(q(1-q))$ is continuous in $t$. By the mean value theorem and dominated convergence, $\Phi$ is differentiable with the stated derivative, and the same argument shows that $\Phi'$ is continuous.
+\end{proof}
+
+\begin{lemma}\label{E:lem:sign}
+For a finite family $u$ of nonnegative numbers let $I_u(q)=\int_0^q\operatorname{Im}F_u(y)\,dy$ for $q\in[0,1]$. Then $I_u\ge0$ and $I_u(0)=I_u(1)=0$. Consequently, for every $\tau\ge0$,
+\[
+\Psi(u,\tau):=-\int_0^1\mathcal G_\tau'(q)\operatorname{Im}F_u(q)\,dq=\int_0^1\mathcal G_\tau''(q)\,I_u(q)\,dq\ge0.
+\]
+\end{lemma}
+
+\begin{proof}
+By Corollary~\ref{B:cor:skewseries} and Lemma~\ref{B:lem:skew}, $\operatorname{Im}F_u(q)=\sum_{k\ge1}\beta_k(u)\sin(2\pi kq)$ with $\beta_k(u)\ge0$ and $\sum_k\beta_k(u)\le1$. The series converges uniformly, so
+\[
+I_u(q)=\sum_{k\ge1}\beta_k(u)\,\frac{1-\cos(2\pi kq)}{2\pi k}\ge0,
+\]
+and every term vanishes at $q=0$ and at $q=1$. Integration by parts gives $-\int_0^1\mathcal G_\tau'\operatorname{Im}F_u\,dq=-\bigl[\mathcal G_\tau'I_u\bigr]_0^1+\int_0^1\mathcal G_\tau''I_u\,dq$. The boundary term vanishes, and $\mathcal G_\tau''\ge0$ by Lemma~\ref{E:lem:ident}.
+\end{proof}
+
+\begin{proposition}\label{E:prop:transport}
+Let $u=(u_1,\dots,u_r)$ be a nonzero family of nonnegative numbers, let $\tau_0\ge0$, and put $V=(|u|^2+\tau_0)^{1/2}$ and $T=\max_ju_j$. For $t\in[0,T]$ let
+\[
+u_j(t)=\max(u_j-t,0),\qquad \tau(t)=V^2-\sum_ju_j(t)^2,\qquad \Phi(t)=\mathcal C(u(t);\tau(t)).
+\]
+Let $0=t_0<t_1<\dots<t_m=T$ be the distinct elements of $\{0,u_1,\dots,u_r\}$. Then $\tau(t)\ge\tau_0$, and on each interval $[t_{i-1},t_i]$ the map $t\mapsto(u(t),\tau(t))$ is continuously differentiable (with one-sided derivatives at the end points), and
+\[
+\frac{\partial}{\partial t}\bigl[\mathcal G_{\tau(t)}F_{u(t)}\bigr](q)=i\,q(1-q)\,\mathcal G_{\tau(t)}(q)\,\frac{\partial}{\partial q}F_{u(t)}(q),\qquad \Phi'(t)=\Psi\bigl(u(t),\tau(t)\bigr)\ge0.
+\]
+\end{proposition}
+
+\begin{proof}
+Since $0\le u_j(t)\le u_j$, we have $\tau(t)\ge V^2-|u|^2=\tau_0$. Fix $i$ and let $A=\{j:u_j\ge t_i\}$. For $t\in[t_{i-1},t_i]$ and $j\in A$ we have $u_j(t)=u_j-t$. For $j\notin A$ we have $u_j\le t_{i-1}\le t$, because $u_j$ is one of the points $t_l$ and $u_j<t_i$, so $u_j(t)=0$. Hence $t\mapsto u(t)$ is affine on this interval, $\tau(t)=V^2-\sum_{j\in A}(u_j-t)^2$, and $\tau'(t)=2\Theta(t)$ with $\Theta(t)=\sum_{j\in A}(u_j-t)$. Since $f_0=1$, $F_{u(t)}=\prod_{j\in A}f_{u_j-t}$. By Lemma~\ref{E:lem:ident} with $c=u_j-t$,
+\[
+\begin{aligned}
+\frac{\partial}{\partial t}f_{u_j-t}&=-i\,q(1-q)\,h_{u_j-t}=-i\,q(1-q)\Bigl(i(u_j-t)f_{u_j-t}-\frac{\partial f_{u_j-t}}{\partial q}\Bigr)\\
+&=q(1-q)(u_j-t)f_{u_j-t}+i\,q(1-q)\frac{\partial f_{u_j-t}}{\partial q},
+\end{aligned}
+\]
+and $\partial_t\mathcal G_{\tau(t)}=-\frac12q(1-q)\tau'(t)\mathcal G_{\tau(t)}=-q(1-q)\Theta(t)\mathcal G_{\tau(t)}$. With $H=\mathcal G_{\tau(t)}F_{u(t)}$, the product rule gives
+\[
+\frac{\partial H}{\partial t}=-q(1-q)\Theta(t)H+q(1-q)\Theta(t)H+i\,q(1-q)\,\mathcal G_{\tau(t)}\frac{\partial F_{u(t)}}{\partial q}=i\,q(1-q)\,\mathcal G_{\tau(t)}\frac{\partial F_{u(t)}}{\partial q}.
+\]
+Since $\mathcal G_{\tau(t)}$ is real and $\operatorname{Re}(iz)=-\operatorname{Im}z$, Lemma~\ref{E:lem:diff} gives
+\[
+\begin{aligned}
+\Phi'(t)&=\int_0^1\mathcal G_{\tau(t)}(q)\,\frac{\partial}{\partial q}\operatorname{Im}F_{u(t)}(q)\,dq\\
+&=\Bigl[\mathcal G_{\tau(t)}\operatorname{Im}F_{u(t)}\Bigr]_0^1-\int_0^1\mathcal G_{\tau(t)}'(q)\operatorname{Im}F_{u(t)}(q)\,dq=\Psi\bigl(u(t),\tau(t)\bigr).
+\end{aligned}
+\]
+The boundary term vanishes because $F_{u(t)}(0)=F_{u(t)}(1)=1$, and $\Psi\ge0$ by Lemma~\ref{E:lem:sign}.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{E:thm:pfa}]
+If $u=0$, both sides equal $\mathcal C_G(\tau^{1/2})$. Otherwise we take $\tau_0=\tau$ and the path of Proposition~\ref{E:prop:transport}. The function $\Phi$ is continuous on $[0,T]$ by Lemma~\ref{E:lem:diff}, and by Proposition~\ref{E:prop:transport} it is nondecreasing on each interval $[t_{i-1},t_i]$. Hence $\mathcal C(u;\tau)=\Phi(0)\le\Phi(T)=\mathcal C(\emptyset;V^2)=\mathcal C_G(V)$. For the last statement take $u=v\lambda$ and $\tau=0$.
+\end{proof}
+
+\begin{lemma}\label{E:lem:gauss}
+For $\rho\ge0$, $\frac1\pi\int_0^\infty\mathcal C_G(v\rho)\,v^{-2}\,dv=\sqrt{\pi/2}\,\rho$.
+\end{lemma}
+
+\begin{proof}
+Both sides vanish for $\rho=0$, so let $\rho>0$. The integrand is nonnegative, so we may integrate over $v$ first. For $q\in(0,1)$ the substitution $y=v\rho\sqrt{q(1-q)}$ and the integral computed in the proof of Corollary~\ref{A:cor:bound} give
+\[
+\int_0^\infty\bigl(1-e^{-v^2\rho^2q(1-q)/2}\bigr)\frac{dv}{v^2}=\rho\sqrt{q(1-q)}\int_0^\infty\bigl(1-e^{-y^2/2}\bigr)\frac{dy}{y^2}=\sqrt{\frac\pi2}\,\rho\sqrt{q(1-q)}.
+\]
+Finally, $\int_0^1dq/\sqrt{q(1-q)}=\pi$.
+\end{proof}
+
+\begin{corollary}\label{E:cor:main}
+For every $n\ge1$ and every $\lambda\in\R^n$, $J(\lambda)\le\sqrt{\pi/2}\,|\lambda|$. Hence $K\le\sqrt{\pi/2}$, and $C\le\sqrt{\pi/2}$ by Theorem~\ref{thm:reduction}.
+\end{corollary}
+
+\begin{proof}
+By Corollary~\ref{B:cor:freq} and Theorem~\ref{E:thm:pfa}, $C_v(\lambda)\le C_v(\bar\lambda)\le\mathcal C_G(v|\lambda|)$ for every $v>0$. By~\eqref{B:eq:JCv} and Lemma~\ref{E:lem:gauss}, $J(\lambda)\le\frac1\pi\int_0^\infty\mathcal C_G(v|\lambda|)\,v^{-2}\,dv=\sqrt{\pi/2}\,|\lambda|$.
+\end{proof}
+
+\section{Formal verification}\label{sec:lean}
+
+The formal proof is written in Lean~4~\cite{MU21} with Mathlib~\cite{Mathlib20}. It shows that $\E|f-\E f|\le\sqrt{\pi/2}\,\E|\nabla f|$ for all $n$ and all $f\colon\{-1,1\}^n\to\R$, and that every constant with this property is at least $\sqrt{\pi/2}$. With $C$ defined as the infimum of the set of valid constants, which is nonempty by the upper bound, it follows that $C=\sqrt{\pi/2}$. The formal proof also proves the first inequality of Theorem~\ref{thm:reduction} and Corollary~\ref{E:cor:main}, with $J$ defined by the integral~\eqref{eq:J}. The proofs are checked by the Lean kernel and use only the standard axioms. For the upper bound, the formal proof follows Section~\ref{sec:elem}. It establishes~\eqref{B:eq:JCv}, Corollary~\ref{B:cor:freq}, Theorem~\ref{E:thm:pfa} and Lemma~\ref{E:lem:gauss}, and it does not use Theorem~\ref{A:thm:A}. The lower bound follows Section~\ref{sec:constant}, with the central limit theorem on the cube derived from L\'evy's continuity theorem in Mathlib. Theorem~\ref{B:thm:B} itself, Theorem~\ref{A:thm:A} and its corollaries, the constants $c_n$, the strict inequalities in Lemmas~\ref{B:lem:skew} and~\ref{B:lem:kernel}, and the remarks, apart from the value $J(e_1)=1$ in Remark~\ref{rem:basic}(i), are not formalized. The Lean projects, with the versions of Lean and Mathlib that they use, are in the archive given under Data availability.
+
+\appendix
+\section{The dual approach}\label{app:dual}
+
+This appendix proves the statements of Remark~\ref{rem:dual}(ii).
+
+We first derive $\E|f-\E f|\le K_n\E|\nabla f|$ from the duality argument of~\cite[Section~2]{ILvHV}. By Lemma~\ref{lem:ivhv} and~\cite[Lemma~2.1]{IvHV}, $f-\E f=\int_0^\infty\sum_jD_jT_tD_jf\,dt$ (see~\cite[Remark~2.2]{IvHV}). Since $D_j$ and $T_t$ are self-adjoint and commute, $\E[(f-\E f)g]=\E\sum_jD_jf\int_0^\infty D_jT_tg\,dt$ for every $g$. By~\cite[Lemma~2.1]{IvHV}, $D_jT_tg(x)=(e^{2t}-1)^{-1/2}\E[\delta_j(t)g(x\zeta(t))]$. Hence, if $|g|\le1$ and $\lambda$ is a unit vector, then $\sum_j\lambda_j\int_0^\infty D_jT_tg(x)\,dt\le J(\lambda)\le K_n$ for every $x$, and so $\E[(f-\E f)g]\le K_n\E|\nabla f|$. Taking the supremum over all $g$ with $|g|\le1$, we obtain the inequality. The same argument shows that the dual constant $C_{\mathrm{dual},n}=\sup_{|g|\le1}\max_x|\int_0^\infty\nabla T_tg(x)\,dt|$ of~\cite[(12.1)]{ILvHV} is at most $K_n$. (The operators $\partial_k$ used there satisfy $|\partial_kg|=|D_kg|$, so the Euclidean norms agree.) It equals the quantity~\cite[(11.11)]{ILvHV}. Indeed, with $\rho=e^{-t}$ and $z$ uniform on the cube, the formula for $D_jT_tg$ shows that $\int_0^\infty D_jT_tg(x)\,dt=\E_z[g(xz)K_j(z)]$, where $K_j(z)=\int_0^1(z_j-\rho)(1-\rho^2)^{-1}\prod_k(1+\rho z_k)\,d\rho$, and the supremum over $|g|\le1$ of the length of this vector is $\max_{|\lambda|=1}\E_z|\sum_j\lambda_jK_j(z)|$, which does not depend on $x$ and is (11.11). In dimension $n$, the quantity~\cite[(11.12)]{ILvHV} equals $\int_0^{\pi/2}R_n(p(\theta))\,d\theta$, where $R_n(p)$ is the supremum of $\E|\sum_j\lambda_j\xi_j^{(p)}|$ over unit vectors of $\R^n$. Indeed, in (11.12) the expectation over $z$ uniform on $\{-1,1\}^n$ carries the weight $(1+\rho)^{n-d(z)}(1-\rho)^{d(z)}=\prod_k(1+\rho z_k)$, where $d(z)$ is the number of coordinates equal to $-1$. With this weight it is the expectation over $z$ with independent coordinates and $\P(z_k=1)=(1+\rho)/2$. For such $z$, $(z_i-\rho)/(1-\rho^2)=\delta_i/\sqrt{1-\rho^2}$, where $\delta_i=(z_i-\rho)/\sqrt{1-\rho^2}$ has the law of $\xi^{(p)}$ with $p=(1+\rho)/2$. Finally $d\rho/\sqrt{1-\rho^2}=d\theta$ for $\rho=\sin\theta$. Thus $K_n$ is obtained from (11.12) by taking the maximum over $\lambda$ outside the integral over~$\rho$. By Section~\ref{sec:constant}, $K_n=c_n<\sqrt{\pi/2}$. Since the argument above also proves $\E|f-\E f|\le C_{\mathrm{dual},n}\E|\nabla f|$, Theorem~\ref{thm:main} shows that $\sup_nC_{\mathrm{dual},n}=\sqrt{\pi/2}$. For $n=2$ equality holds, $C_{\mathrm{dual},2}=c_2$. Indeed, let $g=\min(x_1,x_2)=(x_1x_2+x_1+x_2-1)/2$, which they found to be optimal for $n=2$. Then $T_tg=(e^{-2t}x_1x_2+e^{-t}(x_1+x_2)-1)/2$, so $\int_0^\infty D_1T_tg\,dt=x_1/2+x_1x_2/4$, and similarly for $D_2$. At $x=(1,1)$ the vector $\int_0^\infty\nabla T_tg\,dt$ is $(3/4,3/4)$, whose length is $3/(2\sqrt2)=c_2$. They report the same optimal value for $3\le n\le7$, so by their computations $C_{\mathrm{dual},n}=c_2<c_n=K_n$ for these~$n$.
+
+\section*{Data availability}
+\begingroup\sloppy
+The certificate \texttt{mom\_c142.json}, the two checkers \texttt{check11a\_mom.py} and \texttt{check11a\_indep.py}, the program that generates the perturbed certificates used to test them, the search program \texttt{mom\_bb.py} and the programs for the numerical statements of Sections~\ref{sec:reduction}, \ref{sec:thmB} and~\ref{sec:constant} are archived at \href{https://doi.org/\SUPPDOI}{doi:\SUPPDOI} and available at\\ \url{\REPOURL}. The certificate has SHA-256 hash
+\begin{center}\scriptsize\texttt{\CertSha}.\end{center}
+The checkers need Python~3.9 or later and python-flint. Some files of the archive use the numbering of an earlier version of this paper, and its file \texttt{README.md} lists the correspondence. The Lean project of Section~\ref{sec:lean} is in the directory \texttt{lean/sharp} of the archive, and that of~\cite{Tom26}, with its certificate and programs, in the directory \texttt{lean} outside \texttt{lean/sharp}. Their README files display the definitions, name the theorems, give the versions of Lean and Mathlib and list the places where the formal proofs are arranged differently from the text. The main README file describes the certificate, the tests of the two checkers on perturbed certificates and the search.\par\endgroup
+
+\section*{Use of AI tools}
+Generative AI tools were used to find and prove the results, to write the programs, and to draft the text. The author reviewed the arguments and the programs and takes responsibility for the content.
+
+\begin{thebibliography}{99}
+\bibitem{BEL08} L.~Ben Efraim and F.~Lust-Piquard, \emph{Poincar\'e type inequalities on the discrete cube and in the CAR algebra}, Probab. Theory Related Fields \textbf{141} (2008), 569--602.
+\bibitem{DIR26} P.~Durcik, P.~Ivanisvili and J.~Roos, \emph{Sharp isoperimetric inequalities on the Hamming cube near the critical exponent}, Adv. Math. \textbf{503} (2026), 111264; arXiv:2407.12674.
+\bibitem{DIRX26} P.~Durcik, P.~Ivanisvili, J.~Roos and X.~Xie, \emph{Sharp isoperimetric inequalities on the Hamming cube II: The critical exponent}, arXiv:2602.20462, 2026.
+\bibitem{HL26} G.~Han and P.~Li, \emph{High-order Talagrand and Eldan--Gross inequalities via Besov-type variance functionals}, arXiv:2606.14876, 2026.
+\bibitem{ILvHV} P.~Ivanisvili, D.~Li, R.~van Handel and A.~Volberg, \emph{Improving constant in end-point Poincar\'e inequality on Hamming cube}, arXiv:1811.05584v5, 2019.
+\bibitem{IS24} P.~Ivanisvili and Y.~Stone, \emph{Sharpening the gap between $L^1$ and $L^2$ norms}, arXiv:2407.04835, 2024.
+\bibitem{IvHV} P.~Ivanisvili, R.~van Handel and A.~Volberg, \emph{Rademacher type and Enflo type coincide}, Ann. of Math. (2) \textbf{192} (2020), 665--678.
+\bibitem{IXZ26} P.~Ivanisvili, X.~Xie and H.~Zhang, \emph{A Beckmann boundary form of Talagrand's conjecture on the discrete cube}, arXiv:2606.31961, 2026.
+\bibitem{Mathlib20} The mathlib Community, \emph{The Lean mathematical library}, in: Proceedings of the 9th ACM SIGPLAN International Conference on Certified Programs and Proofs (CPP 2020), ACM, 2020, 367--381.
+\bibitem{MOA11} A.~W.~Marshall, I.~Olkin and B.~C.~Arnold, \emph{Inequalities: Theory of Majorization and Its Applications}, 2nd ed., Springer, New York, 2011.
+\bibitem{MU21} L.~de Moura and S.~Ullrich, \emph{The Lean 4 theorem prover and programming language}, in: Automated Deduction -- CADE 28, Lecture Notes in Comput. Sci. \textbf{12699}, Springer, 2021, 625--635.
+\bibitem{Pis86} G.~Pisier, \emph{Probabilistic methods in the geometry of Banach spaces}, in: Probability and Analysis (Varenna, 1985), Lecture Notes in Math. \textbf{1206}, Springer, Berlin, 1986, 167--241.
+\bibitem{Sto25} Y.~Stone, \emph{The Poincar\'e inequality on the Hamming cube for vector-valued functions}, Ph.D. thesis, University of California, Irvine, 2025.
+\bibitem{Tom26} T.~S.~Tomar, \emph{An upper bound for the $L^1$ Poincar\'e constant of the Hamming cube}, preprint (first version of this paper), 2026, \href{https://doi.org/10.5281/zenodo.23524864}{doi:10.5281/zenodo.23524864}.
+\end{thebibliography}
+
+\end{document}

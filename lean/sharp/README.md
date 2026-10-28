@@ -91,7 +91,7 @@ Then `J(λ) = (1/π)∫ v⁻² C_v(λ) dv ≤ (1/π)∫ v⁻² C_G(v|λ|) dv = �
 
 ## Presentation
 
-Compared with the written proof, the formal proof differs in five places:
+Compared with the written proof, the formal proof differs in seven places:
 
 1. **Positive skew.** Instead of the continuous mixture of discrete Laplace laws, `κ_c = shift_m s₀ + shift_{m+1} s₁` with
    explicit symmetric unimodal sequences `s₀, s₁` given by telescoping series (`kap_decomp`). The convolution of two
@@ -102,7 +102,13 @@ Compared with the written proof, the formal proof differs in five places:
    `|sin 2πlq|/(q(1−q)) ≤ 4π|l|` and `|Im F_θ(q)| ≤ 2|θ|₁ q(1−q)`; no logarithmic moment bound is needed.
 4. **The constant π/2** in the formula for `|x|` comes from `1/v² = ∫_0^∞ t e^{−tv} dt`, Tonelli and `arctan`.
 5. **Lower bound.** Instead of the family `2Φ(s/ε) − 1`, the test functions are the integrals of tent functions, for
-   which only the bounds `E|g_ε'(Z)| ≤ 2φ(0)` and `E|g_ε(Z) − c| ≥ 1 − εφ(0)` are needed.
+   which only the bounds `E|g_ε'(Z)| ≤ 2φ(0)` and `E|g_ε(Z) − c| ≥ 1 − εφ(0)` are needed. The transfer from the cube to
+   the Gaussian measure assumes that `g'` is Lipschitz, which holds for these functions.
+6. **Frequency inequality for nonnegative vectors.** It is proved by induction on the number of coordinates: all
+   coordinates decrease together until the smallest one reaches 0, and then this coordinate is removed.
+7. **Formula for J and the Gaussian factor.** The frequency formula for `J` is derived directly from the definition of
+   `J`, by the substitution `q = (1 + sin θ)/2` and the symmetry `q ↔ 1 − q`, and the lemma on the Gaussian factor is
+   computed through `(1 − e^{−kc})/k = ∫_0^c e^{−ku} du` and the Gaussian integral.
 
 ## Building
 

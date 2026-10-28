@@ -6,8 +6,8 @@ authors:
     given-names: Tejasvi Singh
     orcid: "https://orcid.org/0000-0003-4668-3639"
 license: Apache-2.0
-repository-code: "https://github.com/tejasvi/hamming-cube-poincare-v2"
-doi: 10.5281/zenodo.23533351
+repository-code: "https://github.com/tejasvi/hamming-cube-poincare-v2/tree/v3"
+doi: 10.5281/zenodo.23715901
 preferred-citation:
   type: article
   title: "The L¹ Poincaré constant of the Hamming cube"
@@ -15,5 +15,5 @@ preferred-citation:
     - family-names: Tomar
       given-names: Tejasvi Singh
       orcid: "https://orcid.org/0000-0003-4668-3639"
-  doi: 10.5281/zenodo.23533350
+  doi: 10.5281/zenodo.23715900
   year: 2026

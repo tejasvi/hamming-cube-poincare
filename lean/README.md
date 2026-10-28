@@ -1,12 +1,17 @@
 # Lean 4 formalization: the L¹ Poincaré inequality on the Hamming cube with constant 71/50
 
-This directory contains a Lean 4 / Mathlib proof of the main results of the accompanying paper. For every `n` and every
+This directory contains a Lean 4 / Mathlib proof of the bound `C ≤ 71/50`, which the first version of the accompanying
+paper (doi:10.5281/zenodo.23524864) proves with a certificate checked by computer: for every `n` and every
 `f : {-1,1}^n → ℝ`,
 
     E|f − Ef| ≤ (71/50) E|∇f|,
 
 where `E` is the uniform average over the cube, `D_j f(x) = (f(x) − f(x^(j)))/2` and `|∇f|` is the Euclidean norm of
-`(D_1 f, …, D_n f)`.
+`(D_1 f, …, D_n f)`. The sharp constant `√(π/2)`, the main result of the current version, is proved in `sharp/`.
+
+The current version of the paper cites the first version for this proof. This README and the comments in the Lean files
+use the numbering of the first version, in which the bound above is Theorem 1.1; Theorem 2.2, Lemma 2.1 and
+Remark 2.3(i) have the same numbers in both versions.
 
 Toolchain: Lean `leanprover/lean4:v4.35.0-rc3`, Mathlib commit `c55e6e786f49471c72fbddbec5415808896aec1e`
 (see `lean-toolchain` and `lake-manifest.json`).
@@ -15,9 +20,9 @@ Toolchain: Lean `leanprover/lean4:v4.35.0-rc3`, Mathlib commit `c55e6e786f49471c
 
 Kernel-checked, standard axioms only (namespace `Poincare11a.K`, files `MainK.lean` and `MainPaper.lean`):
 
-| paper | Lean |
+| first version | Lean |
 |---|---|
-| Theorem 1.1 | `K.poincare_L1 (n : ℕ) (f : Cube n → ℝ) : avg (fun x => \|f x - avg f\|) ≤ 71 / 50 * avg (gradNorm f)` |
+| Theorem 1.1 (the proof without Theorem 2.2; item 1 of Presentation below) | `K.poincare_L1 (n : ℕ) (f : Cube n → ℝ) : avg (fun x => \|f x - avg f\|) ≤ 71 / 50 * avg (gradNorm f)` |
 | Theorem 1.1, as `C ≤ 71/50` | `K.C11a_le : C11a ≤ 71 / 50` (and `K.one_le_C11a : 1 ≤ C11a`, so the infimum is over a nonempty, bounded-below set) |
 | Theorem 4.2 | `K.K_le (n : ℕ) (lam : Fin n → ℝ) (h : ∑ j, lam j ^ 2 = 1) : J lam ≤ 71 / 50` |
 | Theorem 2.2 (first inequality) | `K.reduction (n : ℕ) (f : Cube n → ℝ) : avg (fun x => \|f x - avg f\|) ≤ avg (fun y => gradNorm f y * J (fun j => D f j y / gradNorm f y))` |
@@ -70,11 +75,11 @@ about 4 GB each. The `native_decide` checks of `CertN.lean` take a few seconds.
     #print axioms Poincare11a.K.poincare_L1
     #print axioms Poincare11a.N.poincare_L1
 
-prints, for every theorem of namespace `K` (and for `reduction`, `J_e1`, `J_intervalIntegrable`):
+prints, for every theorem in the namespace `K` (and for `reduction`, `J_e1`, `J_intervalIntegrable`):
 
     'Poincare11a.K.poincare_L1' depends on axioms: [propext, Classical.choice, Quot.sound]
 
-and for the theorems of namespace `N` the same three axioms plus one axiom per `native_decide` call:
+and for the theorems in the namespace `N` the same three axioms plus one axiom per `native_decide` call:
 
     Poincare11a.CertN.ivs_partOK._native.native_decide.ax_1_1,
     Poincare11a.CertN.lib_allPos._native.native_decide.ax_1_1,
@@ -93,7 +98,7 @@ and for the theorems of namespace `N` the same three axioms plus one axiom per `
   - `Partition.lean`: the `θ`-partition.
   - `Prims.lean`: the integer primitives used by the checker.
   - `CertSound.lean`: Proposition 4.1.
-  - `Assembly.lean`: Theorem 1.1 from the certificate.
+  - `Assembly.lean`: Theorem 1.1 from the certificate, without Theorem 2.2.
   - `Constant.lean`: the constant `C11a`.
   - `KLe.lean`: Theorem 4.2.
   - `Reduction.lean`: Theorem 2.2.
@@ -104,11 +109,12 @@ and for the theorems of namespace `N` the same three axioms plus one axiom per `
 
 ## Presentation
 
-The mathematics is that of the paper. It is presented differently in five places, where this keeps analysis and floating
-point out of the formal proof:
+The mathematics is that of the paper. It is presented differently in five places, to keep analysis and floating point out
+of the formal proof:
 
-1. **Theorem 1.1 directly.** With `m = sin θ`, let `P(m, x) = ∑_z ∏_j w(m, z_j) f(x ⊙ z)` with `w(m, ±1) = (1 ± m)/2`.
-   - Then `P(1, x) = f(x)`, `P(0, x) = Ef`, and `d/dθ P(sin θ, x) = E_ζ ∑_j δ_j D_j f(x ⊙ ζ)` when `cos θ > 0`.
+1. **Theorem 1.1 without Theorem 2.2.** With `m = sin θ`, let `P(m, x) = ∑_z ∏_j w(m, z_j) f(x ⊙ z)` with `w(m, ±1) = (1 ± m)/2`.
+   - Then `P(1, x) = f(x)`, `P(0, x) = Ef`, and `d/dθ P(sin θ, x) = E_ζ ∑_j δ_j D_j f(x ⊙ ζ)` when `cos θ > 0`, with the
+     random sign vector `ζ` and the variables `δ_j` of Lemma 2.1 of the paper, at `e^{-t} = sin θ`.
    - On each `θ`-interval, the mean value theorem is applied to `∑_x s(x)(P(sin θ, x) − P(sin θ_i, x))`, with a fixed
      sign vector `s`. This replaces the integral over `θ`.
    - Theorem 2.2 is proved separately, by the fundamental theorem of calculus.

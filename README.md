@@ -1,7 +1,7 @@
 # The L¹ Poincaré constant of the Hamming cube
 
 Certificates, programs and Lean formalization for the paper *The L¹ Poincaré constant of the Hamming cube* by Tejasvi
-Singh Tomar (doi:10.5281/zenodo.23533350). They are archived at doi:10.5281/zenodo.23533351.
+Singh Tomar (doi:10.5281/zenodo.23715900). They are archived at doi:10.5281/zenodo.23715901.
 
 ## Theorem
 
@@ -26,7 +26,7 @@ Both bounds, `C <= sqrt(pi/2)` and `C >= sqrt(pi/2)`, are verified in Lean 4 wit
 
 The proof of `C = sqrt(pi/2)` is analytic (Sections 2-5 of the paper; Section 6 gives a second, elementary proof of the
 upper bound, which is the route of the Lean proof in `lean/sharp/`, Section 7). The Python programs in this repository
-belong to an independent, computer-assisted proof of the weaker bound `C <= 71/50 = 1.42` (Section 8), and to numerical
+belong to an independent, computer-assisted proof of the weaker bound `C <= 71/50 = 1.42` (proved in the first version of the paper, which the current version cites), and to numerical
 remarks.
 
 1. **Reduction** (Theorem 2.2). For `p` in `(0,1)` let `xi^(p)` take the value `sqrt((1-p)/p)` with probability `p`
@@ -49,9 +49,9 @@ remarks.
    positive coordinate decreases at unit speed until it reaches 0, and the lost variance goes into a Gaussian factor)
    bounds the frequency functional by its Gaussian value; with step 3 at every frequency this gives `J(lambda) <= sqrt(pi/2) |lambda|` for every `lambda`.
 
-The computer-assisted proof of `C <= 71/50` (Section 8):
+The computer-assisted proof of `C <= 71/50` (first version of the paper):
 
-1. **Moment bounds** (Section 8.1). If `h(z) = a + b z^2 + c z^4 + d z^6 >= |z|` on the real line, then
+1. **Moment bounds** (Section 3 of the first version). If `h(z) = a + b z^2 + c z^4 + d z^6 >= |z|` on the real line, then
    `E|S| <= a + b + c E S^4 + d E S^6` for `S = sum_j lambda_j xi_j`. With `q = p(1-p) = cos(theta)^2/4` (written
    `sigma^2` in the paper) and the power sums `P_r = sum_j lambda_j^r`,
 
@@ -60,7 +60,7 @@ The computer-assisted proof of `C <= 71/50` (Section 8):
 
    and `(P4, P6)` lies in `R = {0 <= P4 <= 1, P4^2 <= P6 <= P4^(3/2)}` with `0 <= P3^2 <= P4`. Nothing depends on
    the dimension.
-2. **Certificate** (Section 8.2). Dyadic squares in the `(P4, P6)`-plane tile `[0,1]^2`. Squares that miss `R` are
+2. **Certificate** (Section 4 of the first version). Dyadic squares in the `(P4, P6)`-plane tile `[0,1]^2`. Squares that miss `R` are
    listed as outside squares. For every other square (leaf) and each of the `N = 1024` intervals
    `[i pi/2048, (i+1) pi/2048]` of `theta`, the certificate names one polynomial `h` of its list, or the trivial bound
    `E|S| <= 1`. For every leaf, the sum over the intervals of the interval length times the bound is at most `71/50`.
@@ -75,24 +75,24 @@ The computer-assisted proof of `C <= 71/50` (Section 8):
 | `search/mom_bb.py` | the search program that produced the certificate (floating point; not part of the proof) |
 | `controls/` | perturbed certificates for testing the two checkers: generator and runner |
 | `lean/sharp/` | a Lean 4 / Mathlib proof of `C = sqrt(pi/2)` (both inequalities; Section 7), a self-contained Lake project with its own README |
-| `lean/` (other files) | a Lean 4 / Mathlib proof of the bound `C <= 71/50`, of the first inequality of Theorem 2.2 and of Theorem 8.6, with its own README |
-| `numerics/` | programs for the numerical statements in Sections 4, 5 and 8.3 of the paper (not part of the proofs) |
+| `lean/` (other files) | a Lean 4 / Mathlib proof of the bound `C <= 71/50`, of the first inequality of Theorem 2.2 and of Theorem 4.2 of the first version, with its own README |
+| `numerics/` | programs for the numerical statements in Sections 2, 4 and 5 of the paper and for one remark of its first version (not part of the proofs) |
+| `paper/` | the LaTeX source of the paper (`main.tex`) |
 
-The programs in `checker/`, `independent/`, `controls/` and `search/`, the programs `j_values.py`,
-`is_route_limit.py` and `moment_ceiling.py` in `numerics/`, the Lean files and `README.md` of `lean/`, and the
-copies of the `lean/` files in `lean/sharp/Poincare11a/` use the numbering of the first version of the paper
-(doi:10.5281/zenodo.23524864), in which the computer-assisted proof occupied Sections 1-5. The programs
-`fixed_theta.py` and `dim2_check.py` use the numbering of the current version. The files in `lean/sharp/Poincare11b/`
-and `lean/sharp/README.md` use the labels of the written notes on which the formal proof is based; the last rows of
-the table give their correspondence.
+The programs in `checker/`, `independent/`, `controls/` and `search/`, the programs `j_values.py`, `is_route_limit.py`
+and `moment_ceiling.py` in `numerics/`, the Lean files and `README.md` of `lean/` and the copies of the `lean/` files in
+`lean/sharp/Poincare11a/` use the numbering of the first version of the paper (doi:10.5281/zenodo.23524864), in which
+the computer-assisted proof occupied Sections 1-5. The programs `fixed_theta.py` and `dim2_check.py` use the numbering
+of the current version. The files in `lean/sharp/Poincare11b/` and `lean/sharp/README.md` use the labels of the written
+notes on which the formal proof is based; the last rows of the table give their correspondence.
 
 | First version, or label in `lean/sharp` | Current version |
 |---|---|
-| Theorem 1.1 (`C <= 71/50`) | the bound `C <= 71/50` of Section 8 (Theorems 2.2 and 8.6) |
+| Theorem 1.1 (`C <= 71/50`) | not in the current version, which cites the first version for it |
 | Lemma 2.1, Theorem 2.2, Remarks 2.3, 2.4 | unchanged |
-| Section 3, Lemmas 3.1-3.4 | Section 8.1, Lemmas 8.1-8.4 |
-| Section 4, Proposition 4.1, Theorem 4.2 | Section 8.2, Proposition 8.5, Theorem 8.6 |
-| Section 5, Remarks 5.1, 5.2 | Section 8.3, Remarks 8.7, 8.8 |
+| Sections 3 and 4 (Lemmas 3.1-3.4, Proposition 4.1, Theorem 4.2) | not in the current version |
+| Section 5, Remark 5.2 | Remark 2.5 |
+| Section 5, Remark 5.1 | not in the current version (`numerics/moment_ceiling.py`) |
 | Section 6, Lemmas 6.1-6.4, Theorem 6.5, Corollaries 6.6, 6.7, Remark 6.8 | Section 3, Lemmas 3.1, 3.2, 3.4, 3.5, Theorem 3.6, Corollaries 3.7, 3.8, Remark 3.9 |
 | `lean/sharp`: Lemmas B1, B2, B2', B3, B4 | Lemmas 4.2, 4.3, Corollary 4.4, Lemmas 4.5, 4.6 |
 | `lean/sharp`: Theorem B at every frequency (`HB`) | Corollary 4.7 |
@@ -121,9 +121,11 @@ The first program prints
 in under 10 seconds on one core. Its checks are `assert` statements, so it refuses to run under `python -O`.
 The second program prints the largest leaf sum, `[1.41844884202192 +/- 2.87e-15]`, and ends with
 `RESULT: PASS (claimed 71/50)` in 10 to 25 seconds. Its exit
-status is 0 exactly when every check passes. Both programs exit with status 1 on the perturbed certificates
-described in Section 8.2 of the paper, and on malformed input such as `N = 0`, an index list that is too short, or an
-index outside the list. To make these eight certificates and run both programs on them:
+status is 0 exactly when every check passes. Both programs exit with status 1 on five perturbed certificates: one
+claiming the value 1.418, one with a polynomial that takes a negative value on `[0, infinity)`, one with a leaf missing,
+one with a leaf declared outside although it meets `R`, and one in which all polynomials of a leaf are replaced by the
+first polynomial of the list. They also exit with status 1 on malformed input such as `N = 0`, an index list that is
+too short, or an index outside the list. To make these eight certificates and run both programs on them:
 
     cd controls
     python3 make_controls.py ../certificate/mom_c142.json out
@@ -163,16 +165,16 @@ elementary route of Section 6 and does not use Theorem 3.6; the lower bound uses
 derived from Lévy's continuity theorem in Mathlib. The proofs are checked by the Lean kernel and use only the standard
 axioms `propext`, `Classical.choice` and `Quot.sound` (no `native_decide`). The definitions (`Poincare11a/Defs.lean`)
 and the reduction (`Poincare11a/Reduction.lean`) are byte-identical copies of the files in `lean/`.
-`lean/sharp/README.md` gives the statements, the structure of the proof, a comparison with the written notes mentioned
-above, and the build commands. Section 7 of the paper lists the main differences from the paper. To build:
+`lean/sharp/README.md` gives the statements, the structure of the proof, the places where the formal proof differs
+from the paper, and the build commands. To build:
 
     cd lean/sharp
     lake exe cache get
     lake build
     lake env lean Axioms.lean
 
-**The bound 71/50** (`lean/`, Section 8). This Lean 4 / Mathlib project proves the bound `C <= 71/50`, the first
-inequality of Theorem 2.2 (with `J(grad f(y))` written as `|grad f(y)| J(grad f(y)/|grad f(y)|)`) and Theorem 8.6. As
+**The bound 71/50** (`lean/`; first version of the paper). This Lean 4 / Mathlib project proves the bound `C <= 71/50`, the first
+inequality of Theorem 2.2 (with `J(grad f(y))` written as `|grad f(y)| J(grad f(y)/|grad f(y)|)`) and Theorem 4.2 of the first version. As
 in `lean/sharp/`, the proofs are checked by the Lean kernel and use only the standard axioms. The certificate
 computations are evaluated by the kernel. The same statements are also proved with the certificate computations closed
 by `native_decide`. `lean/README.md` gives the exact statements, the build commands, the expected output of
@@ -217,9 +219,9 @@ Their outputs are in the `.out` files next to them.
 | `fixed_theta.py` | exact values `5888/3125` and `1024/625` for the fixed-`theta` example of Remark 4.8 |
 | `j_values.py` | the constants `c_n = J((1, ..., 1)/sqrt(n))` for `n = 1, 2, 3, 10, 100, 1000`, by quadrature and by formula (A4) of Theorem 3.6 (Section 5) |
 | `dim2_check.py` | the vector fields of Remark 5.2 (best constant `1` in dimension 2), checked in rational arithmetic for all 16 sign functions |
-| `is_route_limit.py` | certified lower bound 1.42177 for the integral over `theta` of the supremum over unit vectors of `E|sum_j lambda_j xi_j|` (Remark 8.8) |
-| `moment_ceiling.py` | the best bound the sextic moment method can give at a point `(P4, P6)`; largest value 1.4160 over the region (Remark 8.7) |
-| `search_1418.log` | the search run with target 1.418, which stops at its depth limit (Remark 8.7) |
+| `is_route_limit.py` | certified lower bound 1.42177 for the integral over `theta` of the supremum over unit vectors of `E|sum_j lambda_j xi_j|` (Remark 2.5): 400,000 equal intervals of `[0, pi/2 - 10^-6]`; on each, `n` is chosen at the left end, where `w = 1 - p` is largest, so that `n w <= 1` on the whole interval, and the equal-weight bound, which is unimodal in `w`, is bounded below by the smaller of its two endpoint values, in ball arithmetic |
+| `moment_ceiling.py` | the best bound the sextic moment method can give at a point `(P4, P6)`; largest value 1.4160 over the region (Remark 5.1 of the first version; not in the current version) |
+| `search_1418.log` | the search run with target 1.418. It stops at its depth limit, level 22, at the square with triple `(22, 187218, 39554)` near `(P4, P6) = (0.0446, 0.0094)`, where the bound of `moment_ceiling.py` is only 1.4137, so the failure comes from the finite list of polynomials, the 1024 intervals and the search margin `2e-4` |
 
 ## License
 
